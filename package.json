@@ -1,0 +1,40 @@
+{
+  "name": "criticalextracter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "consola": "^1.2.0",
+    "css-tree": "^1.0.0-alpha.28",
+    "debug": "^3.1.0",
+    "deepmerge": "^2.1.0",
+    "fs-extra": "^5.0.0",
+    "lodash": "^4.17.5",
+    "puppeteer": "^1.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hummal/CriticalExtracter.git"
+  },
+  "keywords": [
+    "critical",
+    "css",
+    "above",
+    "the",
+    "fold",
+    "stylesheets",
+    "extraction",
+    "critical",
+    "css"
+  ],
+  "author": "Philipp Winterle",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/hummal/CriticalExtracter/issues"
+  },
+  "homepage": "https://github.com/hummal/CriticalExtracter#readme"
+}
