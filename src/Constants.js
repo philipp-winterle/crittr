@@ -11,5 +11,7 @@ module.exports = {
     DEVICE_IS_MOBILE:      false,
     DEVICE_HAS_TOUCH:      false,
     DEVICE_IS_LANDSCAPE:   false,
-    TIMEOUT:               30000
+    TIMEOUT:               30000,
+    PAGE_LOAD_TIMEOUT:     2000,
+    PAGE_RENDER_TIMEOUT:   300
 };

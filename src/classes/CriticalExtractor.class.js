@@ -10,7 +10,7 @@ const debug           = require('debug')("CriticalExtractor Class");
 const consola         = require('consola');
 const merge           = require('deepmerge');
 const puppeteer       = require('puppeteer');
-const package_json    = require('../../package.json');
+const devices         = require('puppeteer/DeviceDescriptors');
 const DEFAULTS        = require('../Constants');
 
 const CssTransformator          = require('./CssTransformator.class');
@@ -28,8 +28,8 @@ class CriticalExtractor {
             css:             null,
             urls:            [],
             timeout:         DEFAULTS.TIMEOUT,
-            pageLoadTimeout: 5000,
-            renderTimeout:   200,
+            pageLoadTimeout: DEFAULTS.PAGE_LOAD_TIMEOUT,
+            renderTimeout:   DEFAULTS.PAGE_RENDER_TIMEOUT,
             browser:         {
                 userAgent:      DEFAULTS.USER_AGENT,
                 isCacheEnabled: DEFAULTS.BROWSER_CACHE_ENABLED,
@@ -40,7 +40,7 @@ class CriticalExtractor {
                 height:      DEFAULTS.DEVICE_HEIGHT,
                 scaleFactor: DEFAULTS.DEVICE_SCALE_FACTOR,
                 isMobile:    DEFAULTS.DEVICE_IS_MOBILE,
-                hasTourch:   DEFAULTS.DEVICE_HAS_TOUCH,
+                hasTouch:    DEFAULTS.DEVICE_HAS_TOUCH,
                 isLandscape: DEFAULTS.DEVICE_IS_LANDSCAPE
             },
             puppeteer:       {
@@ -52,6 +52,15 @@ class CriticalExtractor {
 
         this._browser          = null;
         this._cssTransformator = new CssTransformator();
+
+        // Check device
+        if (typeof this.options.device === "string") {
+            if (devices[this.options.device]) {
+                this.options.device = devices[this.options.device].viewport;
+            } else {
+                consola.error("Option 'device' is set as string but has an unknown value. Use devices of puppeteer (https://github.com/GoogleChrome/puppeteer/blob/master/DeviceDescriptors.js) or an object!");
+            }
+        }
 
         // Validate some of the options like url and css
         const optionsErrors = this.validateOptions();
@@ -304,10 +313,10 @@ class CriticalExtractor {
                 page.on('request', interceptedRequest => {
                     if (
                         !interceptedRequest.url().includes("maps.gstatic.com"),
-                        !interceptedRequest.url().includes("maps.googleapis.com"),
-                        !interceptedRequest.url().includes("googletagmanager.com"),
-                        !interceptedRequest.url().includes("generaltracking"),
-                        !interceptedRequest.url().includes("doubleclick.net")
+                            !interceptedRequest.url().includes("maps.googleapis.com"),
+                            !interceptedRequest.url().includes("googletagmanager.com"),
+                            !interceptedRequest.url().includes("generaltracking"),
+                            !interceptedRequest.url().includes("doubleclick.net")
                     ) {
                         interceptedRequest.continue();
                     } else {
@@ -321,7 +330,7 @@ class CriticalExtractor {
                         height:            deviceOptions.height,
                         deviceScaleFactor: deviceOptions.scaleFactor,
                         isMobile:          deviceOptions.isMobile,
-                        hasTouch:          deviceOptions.hasTourch,
+                        hasTouch:          deviceOptions.hasTouch,
                         isLandscape:       deviceOptions.isLandscape
                     },
                     userAgent: browserOptions.userAgent
