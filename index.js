@@ -1,7 +1,7 @@
 "use strict";
 
 const consola           = require('consola');
-const CriticalExtractor = require('./classes/CriticalExtractor.class');
+const CriticalExtractor = require('./src/classes/CriticalExtractor.class');
 
 module.exports = (options) => {
     return new Promise(async (resolve, reject) => {
