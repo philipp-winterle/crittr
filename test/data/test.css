@@ -1,0 +1,127 @@
+.standard-selector {
+    color: black;
+}
+
+#id-selector {
+    color: blue;
+}
+
+div {
+    color: darkgrey;
+}
+
+.child-selector > * {
+    color: brown
+}
+
+.sibling-selector + .sibling {
+    color: green
+}
+
+.sibling-general-selector ~ .sibling {
+    color: aqua;
+}
+
+.property-selector[data-test="test"] {
+    color: bisque;
+}
+
+.group-selector .deep1 .deep2 {
+    color: chartreuse;
+}
+
+.multi-selector,
+.multi-selector-1,
+.multi-selector-2 {
+    color: darkmagenta;
+}
+
+.multi-selector,
+.no-atf-css {
+    color: red;
+}
+
+.no-atf-css-default {
+    color: tomato;
+}
+
+.forceInclude {
+    color: deeppink;
+}
+
+.forceExclude {
+    color: royalblue;
+}
+
+
+@media all and (min-width: 1024px) {
+    .standard-selector {
+        color: black;
+        content: ".standard-selector 1024"
+    }
+
+    #id-selector {
+        color: blue;
+        content: "#id-selector 1024"
+    }
+
+    div {
+        color: darkgrey;
+        content: "div 1024"
+    }
+
+    .pseudo-selector:after {
+        color: limegreen;
+    }
+
+    .pseudo-selector::before {
+        color: silver;
+    }
+
+    .no-atf-css-default-1024 {
+        color: tomato;
+    }
+
+    .forceInclude {
+        color: deeppink;
+    }
+
+    .forceExclude {
+        color: royalblue;
+    }
+}
+
+@media all and (min-width: 1024px) {
+    .standard-selector {
+        content: "double media query 1024 .standard-selector";
+    }
+}
+
+@media all and (min-width: 800px) {
+    .standard-selector {
+        color: black;
+        content: ".standard-selector 800"
+    }
+
+    #id-selector {
+        color: blue;
+        content: "#id-selector 800"
+    }
+
+    div {
+        color: darkgrey;
+        content: "div 800"
+    }
+
+    .no-atf-css-default-800 {
+        color: tomato;
+    }
+
+    .forceInclude {
+        color: deeppink;
+    }
+
+    .forceExclude {
+        color: royalblue;
+    }
+}

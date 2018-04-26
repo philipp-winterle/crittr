@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>TestPage</title>
+        <link rel="stylesheet" href="test.css">
+    </head>
+    <body>
+        <div class="standard-selector">Class .standard-selector</div>
+        <div id="id-selector">ID id-selector</div>
+        <div> div selector </div>
+        <div class="pseudo-selector"></div>
+
+        <hr />
+
+        <div class="child-selector">
+            <span>Class .child-selector Child</span>
+        </div>
+
+        <hr />
+
+        <div class="sibling-selector">Class .sibling-selector</div>
+        <div class="sibling">Class .sibling</div>
+
+        <hr />
+
+        <div class="sibling-general-selector">Class .sibling-general-selector</div>
+        <div class="anotherDiv"></div>
+        <div class="sibling">Class .sibling</div>
+
+        <hr />
+
+        <div class="property-selector" data-test="test"> Class .property-selector[data-test="test"]</div>
+
+        <hr />
+
+        <div class="group-selector">
+            <div class="deep1">
+                Class .deep1
+                <div class="deep2">Class .deep2</div>
+            </div>
+
+        </div>
+
+        <hr />
+
+        <div class="multi-selector">Class .multi-selector</div>
+        <div class="multi-selector-1">Class .multi-selector1</div>
+        <div class="multi-selector-2">Class .multi-selector2</div>
+
+        <!-- Should NOT be contained even if in atf -->
+        <div class="forceExclude">Class .forceExclude</div>
+
+        <div style="width: 100%; height: 1000px; font-weight: bold; font-size: 2em; background-color: darkslategray; color: beige;">
+            This DIV should simulate content.
+            Content below is not included in ATF
+        </div>
+
+        <!-- Should be contained even if not in atf -->
+        <div class="forceInclude">Class .forceInclude</div>
+
+
+    </body>
+</html>

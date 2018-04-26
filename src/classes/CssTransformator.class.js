@@ -8,16 +8,17 @@ const _               = require('lodash');
 const debug           = require('debug')("CriticalExtractor CSSTransformator");
 const consola         = require('consola');
 const merge           = require('deepmerge');
-const csstree         = require('css-tree');
+const css             = require('css');
 
 /**
  *
  */
 class CssTransformator {
     constructor(options) {
-        options = options || {};
+        options      = options || {};
         this.options = {
-
+            silent: true,
+            source: null
         };
 
         this.options = merge(this.options, options);
@@ -40,54 +41,57 @@ class CssTransformator {
     }
 
     getAst(cssContent) {
-        return csstree.parse(cssContent, {
-            positions: true,
-            onParseError: error => {
-                consola.error("CSS PARSE ERROR");
-                consola.error(error);
-            }
-        });
-    }
-
-    /**
-     *
-     * @returns {{selectorNodeMap: WeakMap<Object, any>, selectors: Array[]}}
-     */
-    getSelectorMap(cssContent) {
-        const ast = this.getAst(cssContent);
-
-        const selectors       = new Set();
-        const selectorNodeMap = new WeakMap();
-
-        csstree.walk(ast, {
-            visit: 'Rule',
-            enter: (rule, item, list) => {
-                // ignore rules inside @keyframes at-rule
-                if (item.atrule && csstree.keyword(item.atrule.name).basename === 'keyframes') {
-                    return;
-                }
-
-                // ignore a rule with a bad selector
-                if (rule.prelude.type !== 'SelectorList') {
-                    return;
-                }
-
-                // collect selectors and build a map
-                rule.prelude.children.each(selectorNode => {
-                    const selector = this.normalizeSelector(selectorNode);
-                    if (typeof selector === 'string') {
-                        selectors.add(selector);
-                    }
-                    selectorNodeMap.set(selectorNode, selector);
-                });
-            }
-        });
-
-        return {
-            selectorNodeMap,
-            selectors: Array.from(selectors)
+        let astObj = null;
+        try {
+            astObj = css.parse(cssContent, {
+                silent: this.options.silent,
+                source: this.options.source
+            });
+        } catch (err) {
+            consola.error(err);
         }
+        return astObj;
     }
+
+//    /**
+//     *
+//     * @returns {{selectorNodeMap: WeakMap<Object, any>, selectors: Array[]}}
+//     */
+//    getSelectorMap(cssContent) {
+//        const ast = this.getAst(cssContent);
+//
+//        const selectors       = new Set();
+//        const selectorNodeMap = new WeakMap();
+//
+//        csstree.walk(ast, {
+//            visit: 'Rule',
+//            enter: (rule, item, list) => {
+//                // ignore rules inside @keyframes at-rule
+//                if (item.atrule && csstree.keyword(item.atrule.name).basename === 'keyframes') {
+//                    return;
+//                }
+//
+//                // ignore a rule with a bad selector
+//                if (rule.prelude.type !== 'SelectorList') {
+//                    return;
+//                }
+//
+//                // collect selectors and build a map
+//                rule.prelude.children.each(selectorNode => {
+//                    const selector = this.normalizeSelector(selectorNode);
+//                    if (typeof selector === 'string') {
+//                        selectors.add(selector);
+//                    }
+//                    selectorNodeMap.set(selectorNode, selector);
+//                });
+//            }
+//        });
+//
+//        return {
+//            selectorNodeMap,
+//            selectors: Array.from(selectors)
+//        }
+//    }
 
     normalizeSelector(selectorNode, forceInclude) {
         const selector = csstree.generate(selectorNode);
@@ -131,7 +135,7 @@ class CssTransformator {
     }
 
     matchesForceInclude(selector, forceInclude) {
-        return forceInclude.some( (includeSelector) => {
+        return forceInclude.some((includeSelector) => {
             if (includeSelector.type === 'RegExp') {
                 const {source, flags} = includeSelector;
                 const re              = new RegExp(source, flags);
@@ -141,31 +145,90 @@ class CssTransformator {
         })
     }
 
-    merge(ast1, ast2) {
+    /**
+     * Filters targetAst to not contain any other values then in sourceAst
+     * TODO: ignore keyframes rules
+     *
+     * @param sourceAst
+     * @param targetAst
+     * @returns {Promise<any>}
+     */
+    filter(sourceAst, targetAst) {
+        return new Promise((resolve, reject) => {
 
-        csstree.walk(ast1, {
-            visit: 'Rule',
-            enter: (node, item, list) => {
-                // ignore rules inside @keyframes at-rule
-                if (this.atrule && csstree.keyword(this.atrule.name).basename === 'keyframes') {
-                    return;
-                }
-                // ignore a rule with a bad selector
-                if (node.prelude.type !== 'SelectorList') {
-                    return;
-                }
+            if (targetAst.stylesheet) {
+                let targetRules      = targetAst.stylesheet.rules;
+                sourceAst.stylesheet = sourceAst.stylesheet || {rules: []};
+                let sourceRules      = sourceAst.stylesheet.rules;
 
+                targetAst.stylesheet.rules = _.filter(targetRules, (targetRule, index, collection) => {
+                    // Target rule is media query?
+                    if(targetRule.type === "media") {
+                        // Get an array of all matching source media rules
+                        let matchingSourceMediaArr = [];
 
-                node.prelude.children.each(selectorNode => {
-                    const selector = this.normalizeSelector(selectorNode);
-                    if (typeof selector === 'string') {
-                        selectors.add(selector);
+                        for(let sourceRule of sourceRules) {
+                            // Only respect matching media queries
+                            if (sourceRule.type === "media") {
+                                // Target rule may be slightly different because the CSSMediaRule does not count
+                                // "all" as an important property because it is default. So it just removes it.
+                                if (
+                                    targetRule.media === sourceRule.media ||
+                                    targetRule.media === sourceRule.media.replace("all and ", "")
+                                ) {
+                                    matchingSourceMediaArr = matchingSourceMediaArr.concat(sourceRule.rules);
+                                }
+                            }
+                        }
+
+                        targetRule.rules = _.filter(targetRule.rules, (targetMediaRule, index, collection) => {
+                            for (let sourceMediaRule of matchingSourceMediaArr) {
+                                const hasIdenticalSelectors =  _.isEqual(sourceMediaRule.selectors, targetMediaRule.selectors);
+                                if (hasIdenticalSelectors === true) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
+
+                        return targetRule.rules.length > 0;
+                    } else {
+                        for(let sourceRule of sourceRules) {
+                            // Are the sourceRule selectors the same as the targetRule selectors -> keep
+                            const hasIdenticalSelectors =  _.isEqual(sourceRule.selectors, targetRule.selectors);
+                            if (hasIdenticalSelectors === true) {
+                                return true;
+                            }
+                        }
                     }
-                    selectorNodeMap.set(selectorNode, selector);
+
+                    return false;
                 });
+
+                resolve(targetAst);
+            } else {
+                reject(new Error("Target AST has no root node stylesheet. Stylesheet is properly wrong!"));
             }
         });
     }
+
+    /**
+     * Merge mergeAst into targetAst.
+     * Keep targetAst properties if duplicate
+     *
+     * @param targetAst
+     * @param mergeAst
+     * @returns {Promise<any>}
+     */
+    merge(targetAst, mergeAst) {
+        return new Promise((resolve, reject) => {
+
+            if (targetAst.stylesheet) {
+
+            }
+        });
+    }
+
 }
 
 module.exports = CssTransformator;

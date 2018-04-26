@@ -78,21 +78,16 @@ class CriticalExtractor {
         return new Promise(async (resolve, reject) => {
             debug("run - Starting run ...");
 
-            let selectorMap = null;
             let criticalCss = "";
 
             try {
                 debug("run - Get css content ...");
                 this._cssContent = await this.getCssContent();
-
-                selectorMap = this._cssTransformator.getSelectorMap(this._cssContent);
                 debug("run - Get css content done!");
             } catch (err) {
                 debug("run - ERROR while extracting css content");
                 reject(err);
             }
-
-            const {selectorNodeMap, selectors} = selectorMap;
 
             try {
                 debug("run - Starting browser ...");
@@ -107,7 +102,7 @@ class CriticalExtractor {
 
             try {
                 debug("run - Starting critical css extraction ...");
-                criticalCss = await this.getCriticalCssFromUrls(selectors);
+                criticalCss = await this.getCriticalCssFromUrls();
                 debug("run - Finished critical css extraction!");
             } catch (err) {
                 debug("run - ERROR while critical css extraction");
@@ -127,6 +122,10 @@ class CriticalExtractor {
         });
     }
 
+    /**
+     *
+     * @returns {Array}
+     */
     validateOptions() {
         const errors = [];
         // Check url
@@ -234,24 +233,25 @@ class CriticalExtractor {
 
     }
 
-    getCriticalCssFromUrls(selectors) {
+    getCriticalCssFromUrls() {
         return new Promise(async (resolve, reject) => {
 
             const urls                    = this.options.urls;
             const browserPagesPromisesSet = new Set();
             const criticalCssSets         = new Set();
+            const sourceCssAst            = this._cssTransformator.getAst(this._cssContent);
 
             // Iterate over the array of urls and create a promise for every url
             for (let url of urls) {
                 browserPagesPromisesSet.add({
-                    promise: this.evaluateUrl(url, selectors),
+                    promise: this.evaluateUrl(url),
                     url:     url
                 });
             }
 
             // Iterate over the evaluation promises and get the results of each
             if (browserPagesPromisesSet.size > 0) {
-                // All pages are closed
+                // All pages are evaluted?
                 for (let pagePromiseObj of browserPagesPromisesSet) {
                     let criticalCss = "";
                     try {
@@ -271,7 +271,16 @@ class CriticalExtractor {
             let finalMap = {};
 
             for (let cssMap of criticalCssSets) {
-                finalMap = this.mergeSelectorMaps(finalMap, cssMap);
+                try {
+                    // Filter out all CSS rules which are not in sourceCSS
+                    cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
+
+                    // TODO: merge with finalMap and leave duplicates alone
+                    finalMap = await this._cssTransformator.merge(finalMap, cssMap);
+                } catch(err) {
+                    consola.error(err);
+                }
+
             }
 
             // TODO: After all pages are iterated sum up the css with AST
@@ -279,7 +288,7 @@ class CriticalExtractor {
         }); // End of Promise
     }
 
-    evaluateUrl(url, selectors) {
+    evaluateUrl(url) {
         return new Promise(async (resolve, reject) => {
             let hasError    = false;
             let page        = null;
@@ -312,10 +321,10 @@ class CriticalExtractor {
                 // Remove tracking from pages (at least the well known ones
                 page.on('request', interceptedRequest => {
                     if (
-                        !interceptedRequest.url().includes("maps.gstatic.com"),
-                            !interceptedRequest.url().includes("maps.googleapis.com"),
-                            !interceptedRequest.url().includes("googletagmanager.com"),
-                            !interceptedRequest.url().includes("generaltracking"),
+                        !interceptedRequest.url().includes("maps.gstatic.com") &&
+                            !interceptedRequest.url().includes("maps.googleapis.com") &&
+                            !interceptedRequest.url().includes("googletagmanager.com") &&
+                            !interceptedRequest.url().includes("generaltracking") &&
                             !interceptedRequest.url().includes("doubleclick.net")
                     ) {
                         interceptedRequest.continue();
@@ -361,7 +370,6 @@ class CriticalExtractor {
                 try {
                     debug("evaluateUrl - Extracting critical CSS");
                     criticalCss = await page.evaluate(extractCriticalCss_script, {
-                        selectors,
                         renderTimeout: this.options.renderTimeout
                     }).then(criticalSelectors => {
                         return criticalSelectors || "";
@@ -398,15 +406,6 @@ class CriticalExtractor {
         });
     }
 
-    /**
-     *
-     * @param ast1
-     * @param ast2
-     * @returns {*}
-     */
-    mergeSelectorMaps(ast1, ast2) {
-        return this._cssTransformator.merge(ast1, ast2);
-    }
 }
 
 module.exports = CriticalExtractor;
