@@ -43,55 +43,27 @@ class CssTransformator {
     getAst(cssContent) {
         let astObj = null;
         try {
+            debug("getAst - Try parsing css to ast ...");
             astObj = css.parse(cssContent, {
                 silent: this.options.silent,
                 source: this.options.source
             });
+            debug("getAst - Css successfully parsed to ast ...");
         } catch (err) {
             consola.error(err);
         }
         return astObj;
     }
 
-//    /**
-//     *
-//     * @returns {{selectorNodeMap: WeakMap<Object, any>, selectors: Array[]}}
-//     */
-//    getSelectorMap(cssContent) {
-//        const ast = this.getAst(cssContent);
-//
-//        const selectors       = new Set();
-//        const selectorNodeMap = new WeakMap();
-//
-//        csstree.walk(ast, {
-//            visit: 'Rule',
-//            enter: (rule, item, list) => {
-//                // ignore rules inside @keyframes at-rule
-//                if (item.atrule && csstree.keyword(item.atrule.name).basename === 'keyframes') {
-//                    return;
-//                }
-//
-//                // ignore a rule with a bad selector
-//                if (rule.prelude.type !== 'SelectorList') {
-//                    return;
-//                }
-//
-//                // collect selectors and build a map
-//                rule.prelude.children.each(selectorNode => {
-//                    const selector = this.normalizeSelector(selectorNode);
-//                    if (typeof selector === 'string') {
-//                        selectors.add(selector);
-//                    }
-//                    selectorNodeMap.set(selectorNode, selector);
-//                });
-//            }
-//        });
-//
-//        return {
-//            selectorNodeMap,
-//            selectors: Array.from(selectors)
-//        }
-//    }
+    getCssFromAst(ast) {
+        debug("getCssFromAst - Create css string out of AST");
+        return css.stringify(ast, {
+            indent: "  ",
+            compress: false,
+            sourcemap: true,
+            inputSourcemaps: true
+        })
+    }
 
     normalizeSelector(selectorNode, forceInclude) {
         const selector = csstree.generate(selectorNode);
@@ -155,7 +127,7 @@ class CssTransformator {
      */
     filter(sourceAst, targetAst) {
         return new Promise((resolve, reject) => {
-
+            debug("filter - Filtering ast from source");
             if (targetAst.stylesheet) {
                 let targetRules      = targetAst.stylesheet.rules;
                 sourceAst.stylesheet = sourceAst.stylesheet || {rules: []};
@@ -163,11 +135,11 @@ class CssTransformator {
 
                 targetAst.stylesheet.rules = _.filter(targetRules, (targetRule, index, collection) => {
                     // Target rule is media query?
-                    if(targetRule.type === "media") {
+                    if (targetRule.type === "media") {
                         // Get an array of all matching source media rules
                         let matchingSourceMediaArr = [];
 
-                        for(let sourceRule of sourceRules) {
+                        for (let sourceRule of sourceRules) {
                             // Only respect matching media queries
                             if (sourceRule.type === "media") {
                                 // Target rule may be slightly different because the CSSMediaRule does not count
@@ -183,7 +155,7 @@ class CssTransformator {
 
                         targetRule.rules = _.filter(targetRule.rules, (targetMediaRule, index, collection) => {
                             for (let sourceMediaRule of matchingSourceMediaArr) {
-                                const hasIdenticalSelectors =  _.isEqual(sourceMediaRule.selectors, targetMediaRule.selectors);
+                                const hasIdenticalSelectors = _.isEqual(sourceMediaRule.selectors, targetMediaRule.selectors);
                                 if (hasIdenticalSelectors === true) {
                                     return true;
                                 }
@@ -193,9 +165,9 @@ class CssTransformator {
 
                         return targetRule.rules.length > 0;
                     } else {
-                        for(let sourceRule of sourceRules) {
+                        for (let sourceRule of sourceRules) {
                             // Are the sourceRule selectors the same as the targetRule selectors -> keep
-                            const hasIdenticalSelectors =  _.isEqual(sourceRule.selectors, targetRule.selectors);
+                            const hasIdenticalSelectors = _.isEqual(sourceRule.selectors, targetRule.selectors);
                             if (hasIdenticalSelectors === true) {
                                 return true;
                             }
@@ -205,8 +177,10 @@ class CssTransformator {
                     return false;
                 });
 
+                debug("filter - Successfully filtered AST!");
                 resolve(targetAst);
             } else {
+                debug("filter - ERROR no stylesheet property");
                 reject(new Error("Target AST has no root node stylesheet. Stylesheet is properly wrong!"));
             }
         });
@@ -215,20 +189,106 @@ class CssTransformator {
     /**
      * Merge mergeAst into targetAst.
      * Keep targetAst properties if duplicate
+     * TODO: Media Queries
      *
      * @param targetAst
      * @param mergeAst
-     * @returns {Promise<any>}
+     * @returns {Promise<Object>} AST
      */
     merge(targetAst, mergeAst) {
         return new Promise((resolve, reject) => {
+            debug("merge - Try to merge into targetAst...");
+            if (
+                targetAst.type &&
+                targetAst.type === "stylesheet" &&
+                targetAst.stylesheet &&
+                Array.isArray(targetAst.stylesheet.rules)
+            ) {
+                try {
+                    // Iterate over merging AST
+                    let mergeRules  = mergeAst.stylesheet.rules;
+                    let targetRules = targetAst.stylesheet.rules;
 
-            if (targetAst.stylesheet) {
+                    for (let mergeRule of mergeRules) {
 
+                        // Handle media queries
+                        if (mergeRule.type === "media") {
+                            // TODO MEDIA QUERY
+                            consola.warn("HANDLE MEDIA QUERY")
+
+                        } else { // Normal CSSRule
+                            // Does mergeRule exists in targetRules?
+                            // If not -> assimilate
+                            if (targetRules.length > 0) {
+                                for (let targetRule of targetRules) {
+                                    // Same selectors?? -> Check declaration if same
+                                    if (_.isEqual(mergeRule.selectors, targetRule.selectors)) {
+                                        let mergeDeclarations  = mergeRule.declarations;
+                                        let targetDeclarations = targetRule.declarations;
+
+                                        // Check diff by length
+                                        if (mergeDeclarations.length !== targetDeclarations.length) {
+                                            // Declarations differ -> Take the rule
+                                            targetRules.push(mergeRule); // TODO: positioning
+                                            break;
+                                        } else {
+                                            // Same length! Check single declarations
+                                            let mergeDeclCount     = mergeDeclarations.length;
+                                            let mergeDeclTargetHit = 0;
+
+                                            // Iterate over both declarations and check diff in detail
+                                            // we only count the amount of hits of the same declaration and comparing the result count
+                                            // with the previous count of declarations to be merged. If they are equal
+                                            // we got the same rule
+                                            for (let mergeDeclaration of mergeDeclarations) {
+                                                for (let targetDeclaration of targetDeclarations) {
+                                                    // Is declaration the same?
+                                                    if (targetDeclaration.property === mergeDeclaration.property && targetDeclaration.value !== mergeDeclaration.value) {
+                                                        mergeDeclTargetHit++;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            // Different declarations in both arrays? > create new rule
+                                            if (mergeDeclCount !== mergeDeclTargetHit) {
+                                                // TODO: take care of positioning. The rule may need to overwrite something and could be inserted to early / late
+                                                targetRules.push(mergeRule);
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        // TODO: merge into target but care about position
+                                        // Maybe with mergeRules.indexOf(mergeRule) and keep the same index for inserting in targetRules
+                                        // Problem could be that the inserted Rule overwrites something important which would normally
+                                        // not happen.
+                                        targetRules.push(mergeRule);
+                                        break;
+                                    }
+                                }
+
+                            } else {
+                                // Empty targetRules -> create
+                                targetRules.push(mergeRule);
+                            }
+
+                        }
+
+                    }
+                    // Give back targetAst even though it was mutated
+                    debug("merge - Successfully merged into targetAst!");
+                    resolve(targetAst)
+                } catch (err) {
+                    // Catch errors if occur
+                    debug("merge - general error occured.");
+                    reject(err);
+                }
+            } else {
+                debug("merge - ERROR because of missing properties!");
+                reject(new Error("AST Merge failed due to missing properties"));
             }
         });
     }
-
 }
 
 module.exports = CssTransformator;

@@ -148,26 +148,29 @@ class CriticalExtractor {
      * @returns {Promise}
      */
     getBrowser() {
-        try {
-            // TODO: Check instance of browser to be puppeteer
-            if (this.options.puppeteer.browser !== null) {
-                return this.options.puppeteer.browser;
+        return new Promise( async (resolve, reject) => {
+            try {
+                // TODO: Check instance of browser to be puppeteer
+                if (this.options.puppeteer.browser !== null) {
+                    resolve(this.options.puppeteer.browser);
+                }
+                const browser = await puppeteer.launch({
+                    ignoreHTTPSErrors: true,
+                    args:              [
+                        '--disable-setuid-sandbox',
+                        '--no-sandbox',
+                        '--ignore-certificate-errors'
+                    ],
+                    dumpio:            true
+                }).then(browser => {
+                    return browser;
+                });
+
+                resolve(browser);
+            } catch (err) {
+                reject(err);
             }
-            return puppeteer.launch({
-                ignoreHTTPSErrors: true,
-                args:              [
-                    '--disable-setuid-sandbox',
-                    '--no-sandbox',
-                    '--ignore-certificate-errors'
-                ],
-                dumpio:            true
-            }).then(browser => {
-                return browser;
-            });
-        } catch (err) {
-            consola.error(err);
-            return false;
-        }
+        });
     }
 
     /**
@@ -268,7 +271,12 @@ class CriticalExtractor {
             }
 
             // Go through the critical set and create one out of many
-            let finalMap = {};
+            let finalAst = {
+                "type": "stylesheet",
+                "stylesheet": {
+                    "rules": []
+                }
+            };
 
             for (let cssMap of criticalCssSets) {
                 try {
@@ -276,15 +284,15 @@ class CriticalExtractor {
                     cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
 
                     // TODO: merge with finalMap and leave duplicates alone
-                    finalMap = await this._cssTransformator.merge(finalMap, cssMap);
+                    finalAst = await this._cssTransformator.merge(finalAst, cssMap);
                 } catch(err) {
-                    consola.error(err);
+                    reject(err);
                 }
-
             }
 
             // TODO: After all pages are iterated sum up the css with AST
-            resolve(finalMap);
+            const finalCss = this._cssTransformator.getCssFromAst(finalAst);
+            resolve(finalCss.code);
         }); // End of Promise
     }
 

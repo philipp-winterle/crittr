@@ -2,6 +2,11 @@
     color: black;
 }
 
+/* FOR DUPLICATE TEST */
+.standard-selector {
+    color: black;
+}
+
 #id-selector {
     color: blue;
 }
