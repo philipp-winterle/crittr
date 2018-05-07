@@ -283,14 +283,13 @@ class CriticalExtractor {
                     // Filter out all CSS rules which are not in sourceCSS
                     cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
 
-                    // TODO: merge with finalMap and leave duplicates alone
+                    // TODO: Duplicates not removed at all FIX IT
                     finalAst = await this._cssTransformator.merge(finalAst, cssMap);
                 } catch(err) {
                     reject(err);
                 }
             }
 
-            // TODO: After all pages are iterated sum up the css with AST
             const finalCss = this._cssTransformator.getCssFromAst(finalAst);
             resolve(finalCss.code);
         }); // End of Promise
