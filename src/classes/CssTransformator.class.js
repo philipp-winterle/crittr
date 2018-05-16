@@ -58,9 +58,9 @@ class CssTransformator {
     getCssFromAst(ast) {
         debug("getCssFromAst - Create css string out of AST");
         return css.stringify(ast, {
-            indent: "  ",
-            compress: false,
-            sourcemap: true,
+            indent:          "  ",
+            compress:        false,
+            sourcemap:       true,
             inputSourcemaps: true
         })
     }
@@ -80,8 +80,8 @@ class CssTransformator {
      * Filters targetAst to not contain any other values then in sourceAst
      * TODO: ignore keyframes rules
      *
-     * @param sourceAst
-     * @param targetAst
+     * @param sourceAst {Object}
+     * @param targetAst {Object}
      * @returns {Promise<any>}
      */
     filter(sourceAst, targetAst) {
@@ -93,6 +93,8 @@ class CssTransformator {
                 let sourceRules      = sourceAst.stylesheet.rules;
 
                 targetAst.stylesheet.rules = _.filter(targetRules, (targetRule, index, collection) => {
+                    if (targetRule.type === "comment") return false;
+
                     // Target rule is media query?
                     if (targetRule.type === "media") {
                         // Get an array of all matching source media rules
@@ -101,12 +103,7 @@ class CssTransformator {
                         for (let sourceRule of sourceRules) {
                             // Only respect matching media queries
                             if (sourceRule.type === "media") {
-                                // Target rule may be slightly different because the CSSMediaRule does not count
-                                // "all" as an important property because it is default. So it just removes it.
-                                if (
-                                    targetRule.media === sourceRule.media ||
-                                    targetRule.media === sourceRule.media.replace("all and ", "")
-                                ) {
+                                if (this.isMatchingMediaRuleSelector(targetRule.media, sourceRule.media)) {
                                     matchingSourceMediaArr = matchingSourceMediaArr.concat(sourceRule.rules);
                                 }
                             }
@@ -143,6 +140,77 @@ class CssTransformator {
                 reject(new Error("Target AST has no root node stylesheet. Stylesheet is properly wrong!"));
             }
         });
+    }
+
+    filterSelector(ast, removeSelectors) {
+        if (!Array.isArray(removeSelectors)) {
+            consola.warn("removeSelectors have to be an array to be processed");
+            return false;
+        }
+
+        let rules = ast;
+
+        // Get Rules of ast object and keep reference
+        if (ast.stylesheet) {
+            rules = ast.stylesheet.rules;
+        } else if (ast.rules) {
+            rules = ast.rules;
+        }
+
+        const compareFn = (a, b) => {
+            return b - a;
+        };
+
+        const removeableRules = [];
+
+        for (const ruleIndex in rules) {
+            if (rules.hasOwnProperty(ruleIndex)) {
+                const rule = rules[ruleIndex];
+
+                if (this.isMediaRule(rule)) {
+                    // Recursive check of CSSMediaRule
+                    this.filterSelector(rule, removeSelectors);
+                } else {
+                    //  CSSRule
+                    const selectors = rule.selectors;
+                    const removeableSelectors = [];
+
+                    for (let selectorIndex in selectors) {
+                        if (selectors.hasOwnProperty(selectorIndex)) {
+                            const selector = selectors[selectorIndex];
+
+                            // TODO: deal with wildcards
+                            if (removeSelectors.includes(selector)) {
+                                // More than one selector in there. Only remove the match and keep the other one.
+                                // If only one selector exists remove the whole rule
+                                if (selectors.length > 1) {
+                                    removeableSelectors.push(selectorIndex);
+                                } else {
+                                    removeableRules.push(ruleIndex);
+                                }
+                            }
+                        }
+                    }
+
+                    // Sort the removeableSelectors DESC to remove them properly from the selectors end to start
+                    removeableSelectors.sort(compareFn);
+                    // Now remove them
+                    for(let selectorIndex of removeableSelectors) {
+                        selectors.splice(selectorIndex, 1);
+                    }
+                }
+            }
+
+        }
+
+        // Sort the removeableRules DESC to remove them properly from the rules end to start
+        removeableRules.sort(compareFn);
+        // Now remove them
+        for(let ruleIndex of removeableRules) {
+            rules.splice(ruleIndex, 1);
+        }
+
+        return ast;
     }
 
     /**
@@ -227,10 +295,10 @@ class CssTransformator {
      * @param targetArr
      */
     mergeMediaRule(rule, targetArr) {
-        const selector = rule.media;
+        const selector      = rule.media;
         const mediaRulesArr = rule.rules;
-        let targetRulesArr = [];
-        let hasNoMediaRule = true;
+        let targetRulesArr  = [];
+        let hasNoMediaRule  = true;
 
         for (let targetRule of targetArr) {
             if (this.isMediaRule(targetRule) && this.isMatchingMediaRuleSelector(selector, targetRule.media)) {
@@ -259,7 +327,7 @@ class CssTransformator {
     isRuleDuplicate(rule1, rule2) {
         // Same selectors?? -> Check declaration if same
         if (_.isEqual(rule1.selectors, rule2.selectors)) {
-            let r1Declarations  = rule1.declarations;
+            let r1Declarations = rule1.declarations;
             let r2Declarations = rule2.declarations;
 
             // Check diff by length
@@ -267,7 +335,7 @@ class CssTransformator {
                 return false;
             } else {
                 // Same length! Check single declarations
-                let r1DeclCount     = r1Declarations.length;
+                let r1DeclCount   = r1Declarations.length;
                 let r2DeclMatches = 0;
 
                 // Iterate over both declarations and check diff in detail
@@ -307,6 +375,7 @@ class CssTransformator {
     /**
      * Returns true if selector_1 is matching selector_2 as a media rule selector.
      * Also checks valid differences between media selectors that mean the same.
+     * "all and " is not needed for the same result. Therefor we need to check the rules more gracefully
      *
      * @param selector_1
      * @param selector_2

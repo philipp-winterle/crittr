@@ -4,6 +4,6 @@
 
 ## TODO
 
-- force include/exclude selectors
+- force include selectors
 - wildcards
 - positioning of critical css rules 

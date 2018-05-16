@@ -54,8 +54,20 @@ div {
     color: deeppink;
 }
 
+.multi-selector,
+.forceInclude,
+.multi-selector-1{
+    content: "forceIncludeMultiSelector";
+}
+
 .forceExclude {
     color: royalblue;
+}
+
+.multi-selector,
+.forceExclude,
+.multi-selector-1{
+    content: "forceExcludeMultiSelector";
 }
 
 

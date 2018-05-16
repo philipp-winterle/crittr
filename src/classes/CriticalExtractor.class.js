@@ -298,6 +298,9 @@ class CriticalExtractor {
                     // Filter out all CSS rules which are not in sourceCSS
                     cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
 
+                    // TODO: Maybe combine with filter
+                    cssMap = this._cssTransformator.filterSelector(cssMap, this.options.removeSelectors);
+
                     // TODO: Filter AST by keepSelectors and removeSelectors
                     // remember to use wildcards. Greedy seems to be the perfect fit
                     // Just *selector* matches all selector that have at least selector in their string
