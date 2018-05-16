@@ -8,6 +8,7 @@ const readFilePromise = util.promisify(fs.readFile);
 const _               = require('lodash');
 const debug           = require('debug')("CriticalExtractor Class");
 const consola         = require('consola');
+const chalk           = require('chalk');
 const merge           = require('deepmerge');
 const puppeteer       = require('puppeteer');
 const devices         = require('puppeteer/DeviceDescriptors');
@@ -45,7 +46,9 @@ class CriticalExtractor {
             },
             puppeteer:       {
                 browser: null
-            }
+            },
+            keepSelectors:   [],
+            removeSelectors: []
 
         };
         this.options = merge(this.options, options);
@@ -74,54 +77,6 @@ class CriticalExtractor {
         }
     }
 
-    run() {
-        return new Promise(async (resolve, reject) => {
-            debug("run - Starting run ...");
-
-            let criticalCss = "";
-
-            try {
-                debug("run - Get css content ...");
-                this._cssContent = await this.getCssContent();
-                debug("run - Get css content done!");
-            } catch (err) {
-                debug("run - ERROR while extracting css content");
-                reject(err);
-            }
-
-            try {
-                debug("run - Starting browser ...");
-                this._browser = await this.getBrowser();
-                debug("run - Browser started!");
-            } catch (err) {
-                debug("run - ERROR: Browser could not be launched ... abort!");
-                reject(err);
-                // TODO Retry?
-                process.exit(1);
-            }
-
-            try {
-                debug("run - Starting critical css extraction ...");
-                criticalCss = await this.getCriticalCssFromUrls();
-                debug("run - Finished critical css extraction!");
-            } catch (err) {
-                debug("run - ERROR while critical css extraction");
-                reject(err);
-            }
-
-            try {
-                debug("run - Browser closing ...");
-                await this._browser.close();
-                debug("run - Browser closed!");
-            } catch (err) {
-                debug("run - ERROR: Browser could not be closed -> already closed?");
-            }
-
-            debug("run - Extraction ended!");
-            resolve(criticalCss);
-        });
-    }
-
     /**
      *
      * @returns {Array}
@@ -143,14 +98,64 @@ class CriticalExtractor {
         return errors;
     }
 
+    run() {
+        return new Promise(async (resolve, reject) => {
+            debug("run - Starting run ...");
+
+            let criticalCss = "";
+            let errors = [];
+
+            try {
+                debug("run - Get css content ...");
+                this._cssContent = await this.getCssContent();
+                debug("run - Get css content done!");
+            } catch (err) {
+                debug("run - ERROR while extracting css content");
+                reject(err);
+            }
+
+            try {
+                debug("run - Starting browser ...");
+                this._browser = await this.getBrowser();
+                debug("run - Browser started!");
+            } catch (err) {
+                debug("run - ERROR: Browser could not be launched ... abort!");
+                reject(err);
+            }
+
+            try {
+                debug("run - Starting critical css extraction ...");
+                [criticalCss, errors] = await this.getCriticalCssFromUrls();
+                if (errors.length > 0) {
+                    consola.warn("Some of the urls had errors. Please review them below!");
+                    this.printErrors(errors);
+                }
+                debug("run - Finished critical css extraction!");
+            } catch (err) {
+                debug("run - ERROR while critical css extraction");
+                reject(err);
+            }
+
+            try {
+                debug("run - Browser closing ...");
+                await this._browser.close();
+                debug("run - Browser closed!");
+            } catch (err) {
+                debug("run - ERROR: Browser could not be closed -> already closed?");
+            }
+
+            debug("run - Extraction ended!");
+            resolve(criticalCss);
+        });
+    }
+
     /**
      *
      * @returns {Promise}
      */
     getBrowser() {
-        return new Promise( async (resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
-                // TODO: Check instance of browser to be puppeteer
                 if (this.options.puppeteer.browser !== null) {
                     resolve(this.options.puppeteer.browser);
                 }
@@ -176,37 +181,45 @@ class CriticalExtractor {
     /**
      *
      * @param page
-     * @param error
+     * @param errors {Array<Error>}
      * @returns {Promise<any>}
      */
-    gracefulClosePage(page, error) {
+    gracefulClosePage(page, errors) {
         return new Promise(async (resolve, reject) => {
-            // TODO: handle error arrays
-            consola.error(error);
+
+            this.printErrors(errors);
+
             try {
                 debug("gracefulClosePage - Closing page after error gracefully ...");
                 await page.close();
                 debug("gracefulClosePage - Page closed gracefully!");
             } catch (err) {
                 debug("gracefulClosePage - Error while closing page -> already closed?");
-                consola.error(err);
             }
             resolve();
         });
     }
 
+    printErrors(errors) {
+        if (errors) {
+            consola.warn(chalk.red("Errors occured during processing. Please have a look and report them if necessary"));
+            if (Array.isArray(errors)) {
+                for (let error of errors) {
+                    consola.error(error);
+                }
+            } else {
+                consola.error(errors);
+            }
+        }
+    }
+
     /**
      *
-     * @param browser
-     * @returns {Promise}
+     *
+     * @returns {Promise<Page>}
      */
     getPage() {
-        try {
-            return this._browser.newPage();
-        } catch (err) {
-            consola.error(err);
-            return false;
-        }
+        return this._browser.newPage();
     }
 
     getCssContent() {
@@ -217,11 +230,9 @@ class CriticalExtractor {
                     try {
                         cssString = await readFilePromise(this.options.css, "utf8");
                         if (cssString.length === 0) {
-                            consola.error("No CSS content exists -> exit!");
-                            process.exit(1);
+                            reject(new Error("No CSS content in file exists -> exit!"));
                         }
                     } catch (err) {
-                        consola.error(err);
                         reject(err);
                     }
                 } else {
@@ -233,12 +244,11 @@ class CriticalExtractor {
                 resolve(false);
             }
         });
-
     }
 
     getCriticalCssFromUrls() {
         return new Promise(async (resolve, reject) => {
-
+            let errors                 = [];
             const urls                    = this.options.urls;
             const browserPagesPromisesSet = new Set();
             const criticalCssSets         = new Set();
@@ -261,18 +271,23 @@ class CriticalExtractor {
                         debug("getCriticalCssFromUrls - Try to get critical css from " + pagePromiseObj.url);
                         criticalCss = await pagePromiseObj.promise;
                         debug("getCriticalCssFromUrls - Successfully extracted critical css!");
+                        criticalCssSets.add(this._cssTransformator.getAst(criticalCss));
                     } catch (err) {
                         debug("getCriticalCssFromUrls - ERROR getting critical css from promise");
                         consola.error("Could not get critical css for url " + pagePromiseObj.url);
                         consola.error(err);
+                        errors.push(err);
                     }
-                    criticalCssSets.add(this._cssTransformator.getAst(criticalCss));
                 }
+            }
+
+            if (criticalCssSets.size === 0) {
+                reject(errors);
             }
 
             // Go through the critical set and create one out of many
             let finalAst = {
-                "type": "stylesheet",
+                "type":       "stylesheet",
                 "stylesheet": {
                     "rules": []
                 }
@@ -283,32 +298,55 @@ class CriticalExtractor {
                     // Filter out all CSS rules which are not in sourceCSS
                     cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
 
-                    // TODO: Duplicates not removed at all FIX IT
+                    // TODO: Filter AST by keepSelectors and removeSelectors
+                    // remember to use wildcards. Greedy seems to be the perfect fit
+                    // Just *selector* matches all selector that have at least selector in their string
+                    // *sel* needs only sel and so on
                     finalAst = await this._cssTransformator.merge(finalAst, cssMap);
-                } catch(err) {
+                } catch (err) {
                     reject(err);
                 }
             }
 
             const finalCss = this._cssTransformator.getCssFromAst(finalAst);
-            resolve(finalCss.code);
+            resolve([finalCss.code, errors]);
         }); // End of Promise
     }
 
     evaluateUrl(url) {
         return new Promise(async (resolve, reject) => {
-            let hasError    = false;
-            let page        = null;
-            let criticalCss = null;
+            let retryCounter = 3;
+            let hasError     = false;
+            let page         = null;
+            let criticalCss  = null;
 
-            // TODO: handle page open errors with retry
             // TODO: handle goto errors with retry
-            // TODO: handle page evaluate errors
-            // TODO: handle page close errors?
+
+            const getPage = async () => {
+                return new Promise((resolve, reject) => {
+                    try {
+                        this.getPage()
+                            .then(page => {
+                                resolve(page);
+                            })
+                            .catch(err => {
+                                if (retryCounter-- > 0) {
+                                    consola.warn("Could not get page from browser. Retry " + retryCounter + " times.");
+                                    resolve(getPage());
+                                } else {
+                                    consola.warn("Tried to get page but failed. Abort now ...");
+                                    reject(err);
+                                }
+                            });
+                    } catch (err) {
+                        reject(err);
+                    }
+                })
+            };
 
             try {
                 debug("evaluateUrl - Open new Page-Tab ...");
-                page = await this.getPage();
+                page = await getPage();
                 debug("evaluateUrl - Page-Tab opened!");
             } catch (err) {
                 debug("evaluateUrl - Error while opening page tab -> abort!");
@@ -316,46 +354,48 @@ class CriticalExtractor {
             }
 
             // Set Page properties
-            try {
-                let browserOptions = this.options.browser;
-                let deviceOptions  = this.options.device;
-                debug("evaluateUrl - Set page properties ...");
-                await page.setCacheEnabled(browserOptions.isCacheEnabled); // Disables cache
-                await page.setJavaScriptEnabled(browserOptions.isJsEnabled);
+            if (hasError === false) {
+                try {
+                    let browserOptions = this.options.browser;
+                    let deviceOptions  = this.options.device;
+                    debug("evaluateUrl - Set page properties ...");
+                    await page.setCacheEnabled(browserOptions.isCacheEnabled); // Disables cache
+                    await page.setJavaScriptEnabled(browserOptions.isJsEnabled);
 //                await page.setExtraHTTPHeaders("");
-                await page.setRequestInterception(true);
+                    await page.setRequestInterception(true);
 
-                // Remove tracking from pages (at least the well known ones
-                page.on('request', interceptedRequest => {
-                    if (
-                        !interceptedRequest.url().includes("maps.gstatic.com") &&
+                    // Remove tracking from pages (at least the well known ones
+                    page.on('request', interceptedRequest => {
+                        if (
+                            !interceptedRequest.url().includes("maps.gstatic.com") &&
                             !interceptedRequest.url().includes("maps.googleapis.com") &&
                             !interceptedRequest.url().includes("googletagmanager.com") &&
                             !interceptedRequest.url().includes("generaltracking") &&
                             !interceptedRequest.url().includes("doubleclick.net")
-                    ) {
-                        interceptedRequest.continue();
-                    } else {
-                        interceptedRequest.abort();
-                    }
-                });
+                        ) {
+                            interceptedRequest.continue();
+                        } else {
+                            interceptedRequest.abort();
+                        }
+                    });
 
-                await page.emulate({
-                    viewport:  {
-                        width:             deviceOptions.width,
-                        height:            deviceOptions.height,
-                        deviceScaleFactor: deviceOptions.scaleFactor,
-                        isMobile:          deviceOptions.isMobile,
-                        hasTouch:          deviceOptions.hasTouch,
-                        isLandscape:       deviceOptions.isLandscape
-                    },
-                    userAgent: browserOptions.userAgent
-                });
+                    await page.emulate({
+                        viewport:  {
+                            width:             deviceOptions.width,
+                            height:            deviceOptions.height,
+                            deviceScaleFactor: deviceOptions.scaleFactor,
+                            isMobile:          deviceOptions.isMobile,
+                            hasTouch:          deviceOptions.hasTouch,
+                            isLandscape:       deviceOptions.isLandscape
+                        },
+                        userAgent: browserOptions.userAgent
+                    });
 
-                debug("evaluateUrl - Page properties set!");
-            } catch (err) {
-                debug("evaluateUrl - Error while setting page properties -> abort!");
-                hasError = err;
+                    debug("evaluateUrl - Page properties set!");
+                } catch (err) {
+                    debug("evaluateUrl - Error while setting page properties -> abort!");
+                    hasError = err;
+                }
             }
 
             // Go to destination page
@@ -388,7 +428,6 @@ class CriticalExtractor {
                 }
             }
 
-            // TODO: deal with critical css
             if (hasError === false) {
                 try {
                     debug("evaluateUrl - Closing page ...");

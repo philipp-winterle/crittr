@@ -65,47 +65,6 @@ class CssTransformator {
         })
     }
 
-    normalizeSelector(selectorNode, forceInclude) {
-        const selector = csstree.generate(selectorNode);
-        // some selectors can't be matched on page.
-        // In these cases we test a slightly modified selector instead
-        let modifiedSelector = selector.trim();
-
-//        if (this.matchesForceInclude(modifiedSelector, forceInclude)) {
-//            return true;
-//        }
-
-        if (modifiedSelector.indexOf(':') > -1) {
-            // handle special case selectors, the ones that contain a semicolon (:)
-            // many of these selectors can't be matched to anything on page via JS,
-            // but that still might affect the above the fold styling
-
-            // ::selection we just remove
-            if (/:?:(-moz-)?selection/.test(modifiedSelector)) {
-                return false
-            }
-
-            // for the pseudo selectors that depend on an element, test for presence
-            // of the element (in the critical viewport) instead
-            // (:hover, :focus, :active would be treated same
-            // IF we wanted to keep them for critical path css, but we don’t)
-            modifiedSelector = modifiedSelector.replace(this._PSUEDO_SELECTOR_REGEXP, '');
-
-            // if selector is purely pseudo (f.e. ::-moz-placeholder), just keep as is.
-            // we can't match it to anything on page, but it can impact above the fold styles
-            if (modifiedSelector.replace(/:[:]?([a-zA-Z0-9\-_])*/g, '').trim().length === 0) {
-                return true;
-            }
-
-            // handle browser specific pseudo selectors bound to elements,
-            // Example, button::-moz-focus-inner, input[type=number]::-webkit-inner-spin-button
-            // remove browser specific pseudo and test for element
-            modifiedSelector = modifiedSelector.replace(/:?:-[a-z-]*/g, '');
-        }
-
-        return modifiedSelector;
-    }
-
     matchesForceInclude(selector, forceInclude) {
         return forceInclude.some((includeSelector) => {
             if (includeSelector.type === 'RegExp') {
@@ -189,7 +148,6 @@ class CssTransformator {
     /**
      * Merge mergeAst into targetAst.
      * Keep targetAst properties if duplicate
-     * TODO: Media Queries
      *
      * @param targetAst
      * @param mergeAst
@@ -262,9 +220,13 @@ class CssTransformator {
         }
     }
 
+    /**
+     * Merges a whole media rule with another. While rule is the main rule and targetArr is merges into that rule
+     *
+     * @param rule
+     * @param targetArr
+     */
     mergeMediaRule(rule, targetArr) {
-        consola.info("HANDLE MEDIA QUERY");
-
         const selector = rule.media;
         const mediaRulesArr = rule.rules;
         let targetRulesArr = [];
@@ -287,6 +249,13 @@ class CssTransformator {
         }
     }
 
+    /**
+     * Returns true if rule1 is a duplicate of rule2.
+     *
+     * @param rule1 {Object}
+     * @param rule2 {Object}
+     * @returns {boolean}
+     */
     isRuleDuplicate(rule1, rule2) {
         // Same selectors?? -> Check declaration if same
         if (_.isEqual(rule1.selectors, rule2.selectors)) {
@@ -325,10 +294,24 @@ class CssTransformator {
         return false;
     }
 
+    /**
+     * Returns true if rule is of type "media"
+     *
+     * @param rule
+     * @returns {boolean}
+     */
     isMediaRule(rule) {
         return rule.type === "media";
     }
 
+    /**
+     * Returns true if selector_1 is matching selector_2 as a media rule selector.
+     * Also checks valid differences between media selectors that mean the same.
+     *
+     * @param selector_1
+     * @param selector_2
+     * @returns {boolean}
+     */
     isMatchingMediaRuleSelector(selector_1, selector_2) {
         return selector_1 === selector_2 ||
             selector_1 === selector_2.replace("all and ", "") ||
