@@ -24,6 +24,10 @@ module.exports = (options) => {
         const node = walker.currentNode;
 
         const keep = keepSelectors.find( selector => {
+            // TODO: wildcard
+            // node.matches('[class*="te"]')
+            // node.matches('[id*="te"]')
+            // node.matches('[*="te"]')
             return node.matches(selector);
         });
 

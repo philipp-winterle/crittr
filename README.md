@@ -4,7 +4,6 @@
 
 ## TODO
 
-- force include selectors
 - wildcards
 - positioning of critical css rules 
-- multi selector partial matches
+- multi selector partial matches ? needed?
