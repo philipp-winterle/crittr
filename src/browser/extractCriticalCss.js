@@ -1,6 +1,8 @@
-module.exports = () => {
+module.exports = (options) => {
     // ADJUSTMENTS
-    const removePseudoSelectors = false;
+    const removePseudoSelectors = !!options.removePseudoSelectors;
+    const keepSelectors = options.keepSelectors || [];
+    const renderTimeout = options.renderTimeout || 300;
 
     // innerHeight of window to determine if in viewport
     const height        = window.innerHeight;
@@ -20,9 +22,18 @@ module.exports = () => {
 
     while (walker.nextNode()) {
         const node = walker.currentNode;
-        const rect = node.getBoundingClientRect();
-        if (rect.top < height) {
+
+        const keep = keepSelectors.find( selector => {
+            return node.matches(selector);
+        });
+
+        if (keep) {
             criticalNodes.push(node);
+        } else {
+            const rect = node.getBoundingClientRect();
+            if (rect.top < height) {
+                criticalNodes.push(node);
+            }
         }
     }
 

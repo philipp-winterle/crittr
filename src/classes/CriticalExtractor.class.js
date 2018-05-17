@@ -166,7 +166,7 @@ class CriticalExtractor {
                         '--no-sandbox',
                         '--ignore-certificate-errors'
                     ],
-                    dumpio:            true
+                    dumpio:            false
                 }).then(browser => {
                     return browser;
                 });
@@ -297,19 +297,18 @@ class CriticalExtractor {
                 try {
                     // Filter out all CSS rules which are not in sourceCSS
                     cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
-
-                    // TODO: Maybe combine with filter
                     cssMap = this._cssTransformator.filterSelector(cssMap, this.options.removeSelectors);
-
-                    // TODO: Filter AST by keepSelectors and removeSelectors
-                    // remember to use wildcards. Greedy seems to be the perfect fit
-                    // Just *selector* matches all selector that have at least selector in their string
-                    // *sel* needs only sel and so on
                     finalAst = await this._cssTransformator.merge(finalAst, cssMap);
                 } catch (err) {
                     reject(err);
                 }
             }
+
+            // TODO: Filter AST by keepSelectors
+            // remember to use wildcards. Greedy seems to be the perfect fit
+            // Just *selector* matches all selector that have at least selector in their string
+            // *sel* needs only sel and so on
+
 
             const finalCss = this._cssTransformator.getCssFromAst(finalAst);
             resolve([finalCss.code, errors]);
@@ -355,6 +354,16 @@ class CriticalExtractor {
                 debug("evaluateUrl - Error while opening page tab -> abort!");
                 hasError = err;
             }
+
+            // Add Console Capture
+            if (hasError === false) {
+                page.on('console', msg => {
+                    const args = msg.args();
+                    for (let i = 0; i < args.length; ++i)
+                        consola.log(`${args[i]}`);
+                });
+            }
+
 
             // Set Page properties
             if (hasError === false) {
@@ -420,7 +429,8 @@ class CriticalExtractor {
                 try {
                     debug("evaluateUrl - Extracting critical CSS");
                     criticalCss = await page.evaluate(extractCriticalCss_script, {
-                        renderTimeout: this.options.renderTimeout
+                        renderTimeout: this.options.renderTimeout,
+                        keepSelectors: this.options.keepSelectors
                     }).then(criticalSelectors => {
                         return criticalSelectors || "";
                     });

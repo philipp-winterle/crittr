@@ -82,6 +82,7 @@ class CssTransformator {
      *
      * @param sourceAst {Object}
      * @param targetAst {Object}
+     *
      * @returns {Promise<any>}
      */
     filter(sourceAst, targetAst) {
@@ -92,46 +93,7 @@ class CssTransformator {
                 sourceAst.stylesheet = sourceAst.stylesheet || {rules: []};
                 let sourceRules      = sourceAst.stylesheet.rules;
 
-                targetAst.stylesheet.rules = _.filter(targetRules, (targetRule, index, collection) => {
-                    if (targetRule.type === "comment") return false;
-
-                    // Target rule is media query?
-                    if (targetRule.type === "media") {
-                        // Get an array of all matching source media rules
-                        let matchingSourceMediaArr = [];
-
-                        for (let sourceRule of sourceRules) {
-                            // Only respect matching media queries
-                            if (sourceRule.type === "media") {
-                                if (this.isMatchingMediaRuleSelector(targetRule.media, sourceRule.media)) {
-                                    matchingSourceMediaArr = matchingSourceMediaArr.concat(sourceRule.rules);
-                                }
-                            }
-                        }
-
-                        targetRule.rules = _.filter(targetRule.rules, (targetMediaRule, index, collection) => {
-                            for (let sourceMediaRule of matchingSourceMediaArr) {
-                                const hasIdenticalSelectors = _.isEqual(sourceMediaRule.selectors, targetMediaRule.selectors);
-                                if (hasIdenticalSelectors === true) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        });
-
-                        return targetRule.rules.length > 0;
-                    } else {
-                        for (let sourceRule of sourceRules) {
-                            // Are the sourceRule selectors the same as the targetRule selectors -> keep
-                            const hasIdenticalSelectors = _.isEqual(sourceRule.selectors, targetRule.selectors);
-                            if (hasIdenticalSelectors === true) {
-                                return true;
-                            }
-                        }
-                    }
-
-                    return false;
-                });
+                targetAst.stylesheet.rules = this.filterRules(sourceRules, targetRules);
 
                 debug("filter - Successfully filtered AST!");
                 resolve(targetAst);
@@ -142,6 +104,59 @@ class CssTransformator {
         });
     }
 
+    filterRules(sourceRules, targetRules) {
+        return  _.filter(targetRules, (targetRule, index, collection) => {
+            if (targetRule.type === "comment") return false;
+
+            // Target rule is media query?
+            if (targetRule.type === "media") {
+                // Get an array of all matching source media rules
+                let matchingSourceMediaArr = [];
+
+                for (let sourceRule of sourceRules) {
+                    if (sourceRule.type === "comment") continue;
+                    // Only respect matching media queries
+                    if (sourceRule.type === "media") {
+                        if (this.isMatchingMediaRuleSelector(targetRule.media, sourceRule.media)) {
+                            matchingSourceMediaArr = matchingSourceMediaArr.concat(sourceRule.rules);
+                        }
+                    }
+                }
+
+                targetRule.rules = _.filter(targetRule.rules, (targetMediaRule, index, collection) => {
+                    for (let sourceMediaRule of matchingSourceMediaArr) {
+                        const hasIdenticalSelectors = _.isEqual(sourceMediaRule.selectors, targetMediaRule.selectors);
+                        if (hasIdenticalSelectors === true) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+
+                return targetRule.rules.length > 0;
+            } else {
+                for (let sourceRule of sourceRules) {
+                    if (sourceRule.type === "comment") continue;
+                    // Are the sourceRule selectors the same as the targetRule selectors -> keep
+                    const hasIdenticalSelectors = _.isEqual(sourceRule.selectors, targetRule.selectors);
+                    if (hasIdenticalSelectors === true) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        });
+    }
+
+    /**
+     * Remove all selectors that match one of the removeSelectors.
+     * Mutates the original Object
+     *
+     * @param ast {Object}
+     * @param removeSelectors {Array<String>}
+     * @returns {Object}
+     */
     filterSelector(ast, removeSelectors) {
         if (!Array.isArray(removeSelectors)) {
             consola.warn("removeSelectors have to be an array to be processed");

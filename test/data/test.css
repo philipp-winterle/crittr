@@ -56,7 +56,7 @@ div {
 
 .multi-selector,
 .forceInclude,
-.multi-selector-1{
+.multi-selector-not-exists{
     content: "forceIncludeMultiSelector";
 }
 
