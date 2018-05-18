@@ -3,6 +3,7 @@ module.exports = (options) => {
     const removePseudoSelectors = !!options.removePseudoSelectors;
     const keepSelectors = options.keepSelectors || [];
     const renderTimeout = options.renderTimeout || 300;
+    const dropKeyframes = !!options.dropKeyframes;
 
     // innerHeight of window to determine if in viewport
     const height        = window.innerHeight;
@@ -50,7 +51,7 @@ module.exports = (options) => {
         if (rules) {
             return {
                 sheet: sheet,
-                rules: Array.prototype.map.call(rules, function (rule) { // Convert each CSSRule into a
+                rules: Array.prototype.map.call(rules, function (rule) { // Convert each CSSRule into a string
                     try {
                         if (rule instanceof CSSMediaRule) {
                             let subRules = rule.rules || rule.cssRules;
@@ -71,8 +72,9 @@ module.exports = (options) => {
                                 return e.matches(rule.selectorText.replace(removePseudo, "$1"))
                             }).length > 0 ? rule.cssText : null;
 
+                        } else if (dropKeyframes && (rule instanceof CSSKeyframeRule || rule instanceof CSSKeyframesRule )) {
+                            return "";
                         } else {
-                            console.warn("allowing", rule);
                             return rule.cssText;
                         }
                     } catch (e) {

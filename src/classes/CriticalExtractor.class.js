@@ -26,17 +26,17 @@ class CriticalExtractor {
      */
     constructor(options) {
         this.options = {
-            css:             null,
-            urls:            [],
-            timeout:         DEFAULTS.TIMEOUT,
-            pageLoadTimeout: DEFAULTS.PAGE_LOAD_TIMEOUT,
-            renderTimeout:   DEFAULTS.PAGE_RENDER_TIMEOUT,
-            browser:         {
+            css:                 null,
+            urls:                [],
+            timeout:             DEFAULTS.TIMEOUT,
+            pageLoadTimeout:     DEFAULTS.PAGE_LOAD_TIMEOUT,
+            renderTimeout:       DEFAULTS.PAGE_RENDER_TIMEOUT,
+            browser:             {
                 userAgent:      DEFAULTS.USER_AGENT,
                 isCacheEnabled: DEFAULTS.BROWSER_CACHE_ENABLED,
                 isJsEnabled:    DEFAULTS.BROWSER_JS_ENABLED
             },
-            device:          {
+            device:              {
                 width:       DEFAULTS.DEVICE_WIDTH,
                 height:      DEFAULTS.DEVICE_HEIGHT,
                 scaleFactor: DEFAULTS.DEVICE_SCALE_FACTOR,
@@ -44,11 +44,14 @@ class CriticalExtractor {
                 hasTouch:    DEFAULTS.DEVICE_HAS_TOUCH,
                 isLandscape: DEFAULTS.DEVICE_IS_LANDSCAPE
             },
-            puppeteer:       {
+            puppeteer:           {
                 browser: null
             },
-            keepSelectors:   [],
-            removeSelectors: []
+            printBrowserConsole: false,
+            dropKeyframes:       true,
+            keepSelectors:       [],
+            removeSelectors:     [],
+            blockRequests:       []
 
         };
         this.options = merge(this.options, options);
@@ -103,7 +106,7 @@ class CriticalExtractor {
             debug("run - Starting run ...");
 
             let criticalCss = "";
-            let errors = [];
+            let errors      = [];
 
             try {
                 debug("run - Get css content ...");
@@ -166,7 +169,8 @@ class CriticalExtractor {
                         '--no-sandbox',
                         '--ignore-certificate-errors'
                     ],
-                    dumpio:            false
+                    dumpio:            true,
+                    headless:          true
                 }).then(browser => {
                     return browser;
                 });
@@ -248,7 +252,7 @@ class CriticalExtractor {
 
     getCriticalCssFromUrls() {
         return new Promise(async (resolve, reject) => {
-            let errors                 = [];
+            let errors                    = [];
             const urls                    = this.options.urls;
             const browserPagesPromisesSet = new Set();
             const criticalCssSets         = new Set();
@@ -296,8 +300,8 @@ class CriticalExtractor {
             for (let cssMap of criticalCssSets) {
                 try {
                     // Filter out all CSS rules which are not in sourceCSS
-                    cssMap = await this._cssTransformator.filter(sourceCssAst, cssMap);
-                    cssMap = this._cssTransformator.filterSelector(cssMap, this.options.removeSelectors);
+                    cssMap   = await this._cssTransformator.filter(sourceCssAst, cssMap);
+                    cssMap   = this._cssTransformator.filterSelector(cssMap, this.options.removeSelectors);
                     finalAst = await this._cssTransformator.merge(finalAst, cssMap);
                 } catch (err) {
                     reject(err);
@@ -308,7 +312,6 @@ class CriticalExtractor {
             // remember to use wildcards. Greedy seems to be the perfect fit
             // Just *selector* matches all selector that have at least selector in their string
             // *sel* needs only sel and so on
-
 
             const finalCss = this._cssTransformator.getCssFromAst(finalAst);
             resolve([finalCss.code, errors]);
@@ -355,16 +358,6 @@ class CriticalExtractor {
                 hasError = err;
             }
 
-            // Add Console Capture
-            if (hasError === false) {
-                page.on('console', msg => {
-                    const args = msg.args();
-                    for (let i = 0; i < args.length; ++i)
-                        consola.log(`${args[i]}`);
-                });
-            }
-
-
             // Set Page properties
             if (hasError === false) {
                 try {
@@ -376,14 +369,26 @@ class CriticalExtractor {
 //                await page.setExtraHTTPHeaders("");
                     await page.setRequestInterception(true);
 
+                    const blockRequests = this.options.blockRequests;
                     // Remove tracking from pages (at least the well known ones
                     page.on('request', interceptedRequest => {
+                        const url = interceptedRequest.url();
+                        if (blockRequests) {
+                            for (const blockedUrl of blockRequests) {
+                                if (url.includes(blockedUrl)) {
+                                    interceptedRequest.abort();
+                                    return;
+                                }
+                            }
+                        }
+
+
                         if (
-                            !interceptedRequest.url().includes("maps.gstatic.com") &&
-                            !interceptedRequest.url().includes("maps.googleapis.com") &&
-                            !interceptedRequest.url().includes("googletagmanager.com") &&
-                            !interceptedRequest.url().includes("generaltracking") &&
-                            !interceptedRequest.url().includes("doubleclick.net")
+                            !url.includes("maps.gstatic.com") &&
+                            !url.includes("maps.googleapis.com") &&
+                            !url.includes("googletagmanager.com") &&
+                            !url.includes("generaltracking") &&
+                            !url.includes("doubleclick.net")
                         ) {
                             interceptedRequest.continue();
                         } else {
@@ -410,12 +415,22 @@ class CriticalExtractor {
                 }
             }
 
+            // Add Page Events
+            if (hasError === false && this.options.printBrowserConsole) {
+                page.on('console', msg => {
+                    const args = msg.args();
+                    for (let i = 0; i < args.length; ++i)
+                        consola.log(`${args[i]}`);
+                });
+            }
+
             // Go to destination page
             if (hasError === false) {
                 try {
                     debug("evaluateUrl - Navigating page to " + url);
                     await page.goto(url, {
-                        timeout: this.options.timeout
+                        timeout:   this.options.timeout,
+                        waitUntil: 'networkidle2'
                     });
                     debug("evaluateUrl - Page navigated");
                 } catch (err) {
@@ -428,9 +443,11 @@ class CriticalExtractor {
             if (hasError === false) {
                 try {
                     debug("evaluateUrl - Extracting critical CSS");
+//                    await page.waitFor(500);
                     criticalCss = await page.evaluate(extractCriticalCss_script, {
                         renderTimeout: this.options.renderTimeout,
-                        keepSelectors: this.options.keepSelectors
+                        keepSelectors: this.options.keepSelectors,
+                        dropKeyframes: this.options.dropKeyframes
                     }).then(criticalSelectors => {
                         return criticalSelectors || "";
                     });
