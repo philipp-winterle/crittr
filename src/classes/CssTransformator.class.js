@@ -105,8 +105,9 @@ class CssTransformator {
     }
 
     filterRules(sourceRules, targetRules) {
-        return  _.filter(targetRules, (targetRule, index, collection) => {
+        return _.filter(targetRules, (targetRule, index, collection) => {
             if (targetRule.type === "comment") return false;
+            if (targetRule.type === "font-face") return true;
 
             // Target rule is media query?
             if (targetRule.type === "media") {
@@ -138,7 +139,8 @@ class CssTransformator {
                 for (let sourceRule of sourceRules) {
                     if (sourceRule.type === "comment") continue;
                     // Are the sourceRule selectors the same as the targetRule selectors -> keep
-                    const hasIdenticalSelectors = _.isEqual(sourceRule.selectors, targetRule.selectors);
+                    // TODO: hier kommt schon weniger CSS an. Siehe README BUGS
+                    const hasIdenticalSelectors = this.isSameRuleType(sourceRule, targetRule) && _.isEqual(sourceRule.selectors, targetRule.selectors);
                     if (hasIdenticalSelectors === true) {
                         return true;
                     }
@@ -187,7 +189,7 @@ class CssTransformator {
                     this.filterSelector(rule, removeSelectors);
                 } else {
                     //  CSSRule
-                    const selectors = rule.selectors;
+                    const selectors           = rule.selectors;
                     const removeableSelectors = [];
 
                     for (let selectorIndex in selectors) {
@@ -210,7 +212,7 @@ class CssTransformator {
                     // Sort the removeableSelectors DESC to remove them properly from the selectors end to start
                     removeableSelectors.sort(compareFn);
                     // Now remove them
-                    for(let selectorIndex of removeableSelectors) {
+                    for (let selectorIndex of removeableSelectors) {
                         selectors.splice(selectorIndex, 1);
                     }
                 }
@@ -221,11 +223,67 @@ class CssTransformator {
         // Sort the removeableRules DESC to remove them properly from the rules end to start
         removeableRules.sort(compareFn);
         // Now remove them
-        for(let ruleIndex of removeableRules) {
+        for (let ruleIndex of removeableRules) {
             rules.splice(ruleIndex, 1);
         }
 
         return ast;
+    }
+
+    /**
+     * Filters the AST Object with the selectorMap <Map> containing selectors.
+     * Returns a new AST Object without those selectors. Does NOT mutate the AST.
+     *
+     * @param ast {Object}
+     * @param selectorMap {Map}
+     * @returns {Object<AST>}
+     */
+    filterByMap(ast, selectorMap) {
+        let _ast            = JSON.parse(JSON.stringify(ast));
+        let _astRoot        = null;
+        let media           = "";
+        let removeableRules = [];
+        // Root knot or media query
+        if (_ast.type === "stylesheet") {
+            _astRoot = _ast.stylesheet;
+        } else if (_ast.rules && _ast.type === "media") {
+            _astRoot = _ast;
+            media    = _ast.media || "";
+        } else {
+            debug("Missing ast rules!!!");
+        }
+
+        // checks if critical selec
+        const hasCriticalSelectors = (selectors, media, selectorMap) => {
+            return selectors.some(selector => {
+                // TODO: filter subselectors
+                // Selector is in criticalSelectorsMap
+                return selectorMap.has(media + selector);
+            });
+        };
+
+        // Iterate over all ast rules
+        for (let rule of _astRoot.rules) {
+            // If rule is media going recursive with their rules
+            if (rule.type === "media") {
+                _astRoot.rules[_astRoot.rules.indexOf(rule)] = this.filterByMap(rule, selectorMap);
+            } else if (rule.type === "rule") {
+                // If rule is rule -> check if selectors are in critical map
+                // If not - put them into the array to remove them later on
+                if (!hasCriticalSelectors(rule.selectors, media, selectorMap)) {
+                    removeableRules.push(rule);
+                }
+            } else {
+                debug("Unknow rule type => " + rule.type);
+            }
+        }
+
+        // REMOVE rules from AST Rules
+        _astRoot.rules = _astRoot.rules.filter(rule => {
+            return !removeableRules.includes(rule);
+        });
+        // Return the new AST Object
+        return _ast;
     }
 
     /**
@@ -281,13 +339,13 @@ class CssTransformator {
         if (this.isMediaRule(rule)) {
             this.mergeMediaRule(rule, targetRules);
         } else {
-            // Normal CSS-Rule
+            // Normal CSS-Rule or other
             if (targetRules.length > 0) {
                 let isDuplicate = false;
                 for (let targetRule of targetRules) {
                     // Does rule exists in targetRules?
                     // If not -> assimilate
-                    if (this.isRuleDuplicate(targetRule, rule)) {
+                    if (this.isSameRuleType(targetRule, rule) && this.isRuleDuplicate(targetRule, rule)) {
                         isDuplicate = true;
                         break;
                     }
@@ -375,6 +433,10 @@ class CssTransformator {
         }
 
         return false;
+    }
+
+    isSameRuleType(rule1, rule2) {
+        return rule1.type === rule2.type;
     }
 
     /**

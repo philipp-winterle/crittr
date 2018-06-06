@@ -70,6 +70,15 @@ div {
     content: "forceExcludeMultiSelector";
 }
 
+h1, h2, h3, h4, h5, h6 {
+    font-size: 22px;
+}
+
+.vendor_prefix {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
 
 @media all and (min-width: 1024px) {
     .standard-selector {

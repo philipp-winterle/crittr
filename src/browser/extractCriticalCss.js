@@ -1,9 +1,9 @@
 module.exports = (options) => {
     // ADJUSTMENTS
     const removePseudoSelectors = !!options.removePseudoSelectors;
-    const keepSelectors = options.keepSelectors || [];
-    const renderTimeout = options.renderTimeout || 300;
-    const dropKeyframes = !!options.dropKeyframes;
+    const keepSelectors         = options.keepSelectors || [];
+    const renderTimeout         = options.renderTimeout || 300;
+    const dropKeyframes         = !!options.dropKeyframes;
 
     // innerHeight of window to determine if in viewport
     const height        = window.innerHeight;
@@ -15,8 +15,10 @@ module.exports = (options) => {
     const walker = document.createTreeWalker(
         document,
         NodeFilter.SHOW_ELEMENT,
-        function (node) {
-            return NodeFilter.FILTER_ACCEPT;
+        {
+            acceptNode: function (node) {
+                return NodeFilter.FILTER_ACCEPT;
+            }
         },
         true
     );
@@ -24,7 +26,7 @@ module.exports = (options) => {
     while (walker.nextNode()) {
         const node = walker.currentNode;
 
-        const keep = keepSelectors.find( selector => {
+        const keep = keepSelectors.find(selector => {
             // TODO: wildcard
             // node.matches('[class*="te"]')
             // node.matches('[id*="te"]')
@@ -45,6 +47,12 @@ module.exports = (options) => {
     // Grab loaded stylesheets
     const sheets = document.styleSheets;
 
+    const filterNodes = (nodes, rule, replace) => {
+        return nodes.filter(function (e) {
+            return e.matches(rule.selectorText.replace(replace, "$1"))
+        }).length > 0;
+    };
+
     const outCss = Array.prototype.map.call(sheets, function (sheet) {
         const rules = sheet.rules || sheet.cssRules;
         // If there are rules
@@ -56,9 +64,7 @@ module.exports = (options) => {
                         if (rule instanceof CSSMediaRule) {
                             let subRules = rule.rules || rule.cssRules;
                             let css      = Array.prototype.filter.call(subRules, function (rule) {
-                                return criticalNodes.filter(function (e) {
-                                    return e.matches(rule.selectorText.replace(removePseudo, "$1"))
-                                }).length > 0;
+                                return filterNodes(criticalNodes, rule, removePseudo);
                             }).map(function (rule) {
                                 return rule.cssText
                             }).reduce(function (ruleCss, init) {
@@ -68,11 +74,13 @@ module.exports = (options) => {
 
                         } else if (rule instanceof CSSStyleRule) {
 
-                            return criticalNodes.filter(function (e) {
-                                return e.matches(rule.selectorText.replace(removePseudo, "$1"))
-                            }).length > 0 ? rule.cssText : null;
+                            if (rule.selectorText.indexOf(".c24-travel-main-cnt .c24-travel-extended-fieldset, .c24-travel-main-cnt .c24-travel-searchform-wrapper") !== -1) {
+                                console.log(rule.cssText);
+                            }
 
-                        } else if (dropKeyframes && (rule instanceof CSSKeyframeRule || rule instanceof CSSKeyframesRule )) {
+                            return filterNodes(criticalNodes, rule, removePseudo) ? rule.cssText : null;
+
+                        } else if (dropKeyframes && (rule instanceof CSSKeyframeRule || rule instanceof CSSKeyframesRule)) {
                             return "";
                         } else {
                             return rule.cssText;
@@ -96,7 +104,7 @@ module.exports = (options) => {
         return out + css
     }, "");
 
-    return outCss.replace(/\n/g,"").replace(/content\: \"(.)\"/g,function(a,e){
+    return outCss.replace(/\n/g, "").replace(/content\: \"(.)\"/g, function (a, e) {
         return "content: \"\\" + encodeURI(e).substr(2) + "\"";
     });
 };

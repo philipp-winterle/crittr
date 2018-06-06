@@ -15,7 +15,7 @@ const devices         = require('puppeteer/DeviceDescriptors');
 const DEFAULTS        = require('../Constants');
 
 const CssTransformator          = require('./CssTransformator.class');
-const extractCriticalCss_script = require('../browser/extractCriticalCss');
+const extractCriticalCss_script = require('../browser/extractCriticalCss2');
 
 class CriticalExtractor {
 
@@ -45,7 +45,8 @@ class CriticalExtractor {
                 isLandscape: DEFAULTS.DEVICE_IS_LANDSCAPE
             },
             puppeteer:           {
-                browser: null
+                browser:    null,
+                chromePath: null
             },
             printBrowserConsole: false,
             dropKeyframes:       true,
@@ -165,12 +166,14 @@ class CriticalExtractor {
                 const browser = await puppeteer.launch({
                     ignoreHTTPSErrors: true,
                     args:              [
-                        '--disable-setuid-sandbox',
+//                        '--disable-setuid-sandbox',
                         '--no-sandbox',
                         '--ignore-certificate-errors'
+//                        '--no-gpu'
                     ],
-                    dumpio:            true,
-                    headless:          true
+                    dumpio:            false,
+                    headless:          true,
+                    executablePath:    this.options.puppeteer.chromePath
                 }).then(browser => {
                     return browser;
                 });
@@ -255,13 +258,13 @@ class CriticalExtractor {
             let errors                    = [];
             const urls                    = this.options.urls;
             const browserPagesPromisesSet = new Set();
-            const criticalCssSets         = new Set();
+            const criticalAstSets         = new Set();
             const sourceCssAst            = this._cssTransformator.getAst(this._cssContent);
 
             // Iterate over the array of urls and create a promise for every url
             for (let url of urls) {
                 browserPagesPromisesSet.add({
-                    promise: this.evaluateUrl(url),
+                    promise: this.evaluateUrl(url, sourceCssAst),
                     url:     url
                 });
             }
@@ -270,22 +273,22 @@ class CriticalExtractor {
             if (browserPagesPromisesSet.size > 0) {
                 // All pages are evaluted?
                 for (let pagePromiseObj of browserPagesPromisesSet) {
-                    let criticalCss = "";
+                    let criticalAst = null;
                     try {
-                        debug("getCriticalCssFromUrls - Try to get critical css from " + pagePromiseObj.url);
-                        criticalCss = await pagePromiseObj.promise;
-                        debug("getCriticalCssFromUrls - Successfully extracted critical css!");
-                        criticalCssSets.add(this._cssTransformator.getAst(criticalCss));
+                        debug("getCriticalCssFromUrls - Try to get critical ast from " + pagePromiseObj.url);
+                        criticalAst = await pagePromiseObj.promise;
+                        debug("getCriticalCssFromUrls - Successfully extracted critical ast!");
+                        criticalAstSets.add(criticalAst);
                     } catch (err) {
-                        debug("getCriticalCssFromUrls - ERROR getting critical css from promise");
-                        consola.error("Could not get critical css for url " + pagePromiseObj.url);
+                        debug("getCriticalCssFromUrls - ERROR getting critical ast from promise");
+                        consola.error("Could not get critical ast for url " + pagePromiseObj.url);
                         consola.error(err);
                         errors.push(err);
                     }
                 }
             }
 
-            if (criticalCssSets.size === 0) {
+            if (criticalAstSets.size === 0) {
                 reject(errors);
             }
 
@@ -297,12 +300,11 @@ class CriticalExtractor {
                 }
             };
 
-            for (let cssMap of criticalCssSets) {
+            for (let astMap of criticalAstSets) {
                 try {
-                    // Filter out all CSS rules which are not in sourceCSS
-                    cssMap   = await this._cssTransformator.filter(sourceCssAst, cssMap);
-                    cssMap   = this._cssTransformator.filterSelector(cssMap, this.options.removeSelectors);
-                    finalAst = await this._cssTransformator.merge(finalAst, cssMap);
+                    // Filter selectors which have to be force removed
+                    astMap   = this._cssTransformator.filterSelector(astMap, this.options.removeSelectors);
+                    finalAst = await this._cssTransformator.merge(finalAst, astMap);
                 } catch (err) {
                     reject(err);
                 }
@@ -318,12 +320,20 @@ class CriticalExtractor {
         }); // End of Promise
     }
 
-    evaluateUrl(url) {
+    /**
+     * Evaluates an url and returns the critical AST Object
+     *
+     * @param url
+     * @param sourceAst
+     * @returns {Promise<Object>}
+     */
+    evaluateUrl(url, sourceAst) {
         return new Promise(async (resolve, reject) => {
-            let retryCounter = 3;
-            let hasError     = false;
-            let page         = null;
-            let criticalCss  = null;
+            let retryCounter         = 3;
+            let hasError             = false;
+            let page                 = null;
+            let criticalSelectorsMap = new Map();
+            let criticalAst          = null;
 
             // TODO: handle goto errors with retry
 
@@ -352,6 +362,13 @@ class CriticalExtractor {
             try {
                 debug("evaluateUrl - Open new Page-Tab ...");
                 page = await getPage();
+                if (this.options.printBrowserConsole === true) {
+                    page.on('console', msg => {
+                        const args = msg.args();
+                        for (let i = 0; i < args.length; ++i)
+                            consola.log(`${args[i]}`);
+                    });
+                }
                 debug("evaluateUrl - Page-Tab opened!");
             } catch (err) {
                 debug("evaluateUrl - Error while opening page tab -> abort!");
@@ -381,7 +398,6 @@ class CriticalExtractor {
                                 }
                             }
                         }
-
 
                         if (
                             !url.includes("maps.gstatic.com") &&
@@ -415,15 +431,6 @@ class CriticalExtractor {
                 }
             }
 
-            // Add Page Events
-            if (hasError === false && this.options.printBrowserConsole) {
-                page.on('console', msg => {
-                    const args = msg.args();
-                    for (let i = 0; i < args.length; ++i)
-                        consola.log(`${args[i]}`);
-                });
-            }
-
             // Go to destination page
             if (hasError === false) {
                 try {
@@ -442,20 +449,23 @@ class CriticalExtractor {
 
             if (hasError === false) {
                 try {
-                    debug("evaluateUrl - Extracting critical CSS");
-//                    await page.waitFor(500);
-                    criticalCss = await page.evaluate(extractCriticalCss_script, {
+                    debug("evaluateUrl - Extracting critical selectors");
+                    await page.waitFor(250);
+                    criticalSelectorsMap = new Map(await page.evaluate(extractCriticalCss_script, {
+                        sourceAst:     sourceAst,
                         renderTimeout: this.options.renderTimeout,
                         keepSelectors: this.options.keepSelectors,
                         dropKeyframes: this.options.dropKeyframes
-                    }).then(criticalSelectors => {
-                        return criticalSelectors || "";
-                    });
-                    debug("evaluateUrl - Extracting critical CSS - successful! Length: " + criticalCss.length);
+                    }));
+                    debug("evaluateUrl - Extracting critical selectors - successful! Length: " + criticalSelectorsMap.size);
                 } catch (err) {
-                    debug("evaluateUrl - Error while extracting critical css -> not good!");
+                    debug("evaluateUrl - Error while extracting critical selectors -> not good!");
                     hasError = err;
                 }
+
+                debug("evaluateUrl - cleaning up sourceAST");
+                criticalAst = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
+                debug("evaluateUrl - cleaning up sourceAST - END");
             }
 
             if (hasError === false) {
@@ -478,7 +488,7 @@ class CriticalExtractor {
                 reject(hasError);
             }
 
-            resolve(criticalCss);
+            resolve(criticalAst);
         });
     }
 
