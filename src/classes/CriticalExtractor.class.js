@@ -15,7 +15,7 @@ const devices         = require('puppeteer/DeviceDescriptors');
 const DEFAULTS        = require('../Constants');
 
 const CssTransformator          = require('./CssTransformator.class');
-const extractCriticalCss_script = require('../browser/extractCriticalCss2');
+const extractCriticalCss_script = require('../browser/extract_critical_with_css');
 
 class CriticalExtractor {
 
