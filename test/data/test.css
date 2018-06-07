@@ -80,6 +80,16 @@ h1, h2, h3, h4, h5, h6 {
     box-sizing: border-box;
 }
 
+.pseudo-selector:after {
+    color: limegreen;
+    content: "pseudo :after";
+}
+
+.pseudo-selector::before {
+    color: silver;
+    content: "pseudo ::before";
+}
+
 @media all and (min-width: 1024px) {
     .standard-selector {
         color: black;
@@ -98,10 +108,12 @@ h1, h2, h3, h4, h5, h6 {
 
     .pseudo-selector:after {
         color: limegreen;
+        content: "pseudo 1024 :after";
     }
 
     .pseudo-selector::before {
         color: silver;
+        content: "pseudo 1024 ::before";
     }
 
     .no-atf-css-default-1024 {

@@ -1,8 +1,22 @@
 module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
+
+    // PRE CONFIG VARS
     const usedSelectorTypes = [
         "media",
         "rule"
     ];
+
+    const pseudoSelectors = [
+        "after",
+        "before",
+        "first-line",
+        "first-letter",
+        "selection",
+        "visited"
+    ];
+
+    const PSEUDO_DEFAULT_REGEX = new RegExp(pseudoSelectors.map( s => ":?:" + s).reduce( (acc, cur) => acc + "|" + cur), "g");
+    const PSEUDO_BROWSER_REGEX = new RegExp(/:?:-[a-z-]*/g);
 
     // ADJUSTMENTS
     keepSelectors = keepSelectors || [];
@@ -19,9 +33,12 @@ module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
     const isSelectorCritical = (selector) => {
         if (isSelectorForced(selector)) return true;
 
+        // clean selector from important pseudo classes to get him tracked as critical
+        const cleanedSelector = getCleanedSelector(selector);
+
         let elements;
         try {
-            elements = document.querySelectorAll(selector)
+            elements = document.querySelectorAll(cleanedSelector)
         } catch (e) {
             // Selector not valid
             return false
@@ -36,6 +53,32 @@ module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
         }
         return false
     };
+
+    /**
+     * Clean selector of pseudo classes
+     *
+     * @param selector
+     * @returns selector {String}
+     */
+    const getCleanedSelector = selector => {
+        // We wont clean selectors without ":" because its faster as to replace all
+        if (selector.indexOf(":" > -1)) {
+            selector = selector.replace(PSEUDO_DEFAULT_REGEX, "");
+        }
+        if (selector.indexOf(":" > -1)) {
+            selector = selector.replace(PSEUDO_BROWSER_REGEX, "");
+        }
+
+        return selector;
+    };
+
+    /**
+     * If selector is purely pseudo (f.e. ::-moz-placeholder) -> KEEP IT.
+     *
+     * @param selector
+     * @returns {boolean}
+     */
+    const isPurePseudo = selector => selector.startsWith(":");
 
     const isSelectorForced = selector => {
         return keepSelectors.includes(selector);
@@ -58,7 +101,7 @@ module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
         media     = media || "";
         const key = media + selector;
 
-        if (isSelectorCritical(selector)) {
+        if (isPurePseudo(selector) || isSelectorCritical(selector)) {
             if (!criticalSelectors.has(key)) {
                 criticalSelectors.set(key, {
                     selector: selector,
@@ -67,6 +110,8 @@ module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
             }
         }
     };
+
+
 
     const gatherCriticalSelectors = (ast) => {
         let rules = [];
