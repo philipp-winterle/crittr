@@ -6,7 +6,7 @@ const util            = require('util');
 const readFilePromise = util.promisify(fs.readFile);
 const _               = require('lodash');
 const debug           = require('debug')("CriticalExtractor CSSTransformator");
-const consola         = require('consola');
+const log             = require('signale');
 const merge           = require('deepmerge');
 const css             = require('css');
 
@@ -50,7 +50,7 @@ class CssTransformator {
             });
             debug("getAst - Css successfully parsed to ast ...");
         } catch (err) {
-            consola.error(err);
+            log.error(err);
         }
         return astObj;
     }
@@ -161,7 +161,7 @@ class CssTransformator {
      */
     filterSelector(ast, removeSelectors) {
         if (!Array.isArray(removeSelectors)) {
-            consola.warn("removeSelectors have to be an array to be processed");
+            log.warn("removeSelectors have to be an array to be processed");
             return false;
         }
 

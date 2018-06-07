@@ -7,7 +7,7 @@ const util            = require('util');
 const readFilePromise = util.promisify(fs.readFile);
 const _               = require('lodash');
 const debug           = require('debug')("CriticalExtractor Class");
-const consola         = require('consola');
+const log             = require('signale');
 const chalk           = require('chalk');
 const merge           = require('deepmerge');
 const puppeteer       = require('puppeteer');
@@ -65,7 +65,7 @@ class CriticalExtractor {
             if (devices[this.options.device]) {
                 this.options.device = devices[this.options.device].viewport;
             } else {
-                consola.error("Option 'device' is set as string but has an unknown value. Use devices of puppeteer (https://github.com/GoogleChrome/puppeteer/blob/master/DeviceDescriptors.js) or an object!");
+                log.error("Option 'device' is set as string but has an unknown value. Use devices of puppeteer (https://github.com/GoogleChrome/puppeteer/blob/master/DeviceDescriptors.js) or an object!");
             }
         }
 
@@ -74,7 +74,7 @@ class CriticalExtractor {
 
         if (optionsErrors.length > 0) {
             optionsErrors.forEach(({message}) => {
-                consola.error(message);
+                log.error(message);
             });
             // Exit process when options are invalid
             process.exit(1);
@@ -131,7 +131,7 @@ class CriticalExtractor {
                 debug("run - Starting critical css extraction ...");
                 [criticalCss, errors] = await this.getCriticalCssFromUrls();
                 if (errors.length > 0) {
-                    consola.warn("Some of the urls had errors. Please review them below!");
+                    log.warn("Some of the urls had errors. Please review them below!");
                     this.printErrors(errors);
                 }
                 debug("run - Finished critical css extraction!");
@@ -209,13 +209,13 @@ class CriticalExtractor {
 
     printErrors(errors) {
         if (errors) {
-            consola.warn(chalk.red("Errors occured during processing. Please have a look and report them if necessary"));
+            log.warn(chalk.red("Errors occured during processing. Please have a look and report them if necessary"));
             if (Array.isArray(errors)) {
                 for (let error of errors) {
-                    consola.error(error);
+                    log.error(error);
                 }
             } else {
-                consola.error(errors);
+                log.error(errors);
             }
         }
     }
@@ -281,8 +281,8 @@ class CriticalExtractor {
                         criticalAstSets.add(criticalAst);
                     } catch (err) {
                         debug("getCriticalCssFromUrls - ERROR getting critical ast from promise");
-                        consola.error("Could not get critical ast for url " + pagePromiseObj.url);
-                        consola.error(err);
+                        log.error("Could not get critical ast for url " + pagePromiseObj.url);
+                        log.error(err);
                         errors.push(err);
                     }
                 }
@@ -346,10 +346,10 @@ class CriticalExtractor {
                             })
                             .catch(err => {
                                 if (retryCounter-- > 0) {
-                                    consola.warn("Could not get page from browser. Retry " + retryCounter + " times.");
+                                    log.warn("Could not get page from browser. Retry " + retryCounter + " times.");
                                     resolve(getPage());
                                 } else {
-                                    consola.warn("Tried to get page but failed. Abort now ...");
+                                    log.warn("Tried to get page but failed. Abort now ...");
                                     reject(err);
                                 }
                             });
@@ -366,7 +366,7 @@ class CriticalExtractor {
                     page.on('console', msg => {
                         const args = msg.args();
                         for (let i = 0; i < args.length; ++i)
-                            consola.log(`${args[i]}`);
+                            log.log(`${args[i]}`);
                     });
                 }
                 debug("evaluateUrl - Page-Tab opened!");
