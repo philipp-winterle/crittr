@@ -227,7 +227,6 @@ class CssTransformator {
                     }
                 }
             }
-
         }
 
         // Sort the removeableRules DESC to remove them properly from the rules end to start
@@ -274,6 +273,9 @@ class CssTransformator {
 
         // Iterate over all ast rules and only keep type "rule" and "media"
         for (let rule of _astRoot.rules) {
+            // Free runs
+            if (rule.type)
+
             // If rule is media going recursive with their rules
             if (rule.type === "media") {
                 _astRoot.rules[_astRoot.rules.indexOf(rule)] = this.filterByMap(rule, selectorMap);
@@ -284,8 +286,10 @@ class CssTransformator {
                     removeableRules.push(rule);
                 }
             } else {
-                debug("Unknow rule type => " + rule.type);
-                removeableRules.push(rule);
+                if (!this._TYPES_TO_KEEP.includes(rule.type)) {
+                    debug("Unknow rule type => " + rule.type);
+                    removeableRules.push(rule);
+                }
             }
         }
 
@@ -410,7 +414,7 @@ class CssTransformator {
      */
     isRuleDuplicate(rule1, rule2) {
         // Same selectors?? -> Check declaration if same
-        if (_.isEqual(rule1.selectors, rule2.selectors)) {
+        if (rule1.selectors && rule2.selectors && _.isEqual(rule1.selectors, rule2.selectors)) {
             let r1Declarations = rule1.declarations;
             let r2Declarations = rule2.declarations;
 
