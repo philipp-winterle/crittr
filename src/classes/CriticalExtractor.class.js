@@ -399,6 +399,7 @@ class CriticalExtractor {
                             }
                         }
 
+                        // TODO: json
                         if (
                             !url.includes("maps.gstatic.com") &&
                             !url.includes("maps.googleapis.com") &&

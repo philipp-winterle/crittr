@@ -31,6 +31,14 @@ class CssTransformator {
             ':first-line'
         ];
 
+        this._TYPES_TO_REMOVE = [
+            "comment"
+        ];
+        this._TYPES_TO_KEEP   = [
+            "charset",
+            "font-face"
+        ];
+
         // detect these selectors regardless of whether one or two semicolons are used
         const pseudoSelectorsToKeepRegex = pseudoSelectorsToKeep.map(s => {
             return ':?' + s;
@@ -106,8 +114,10 @@ class CssTransformator {
 
     filterRules(sourceRules, targetRules) {
         return _.filter(targetRules, (targetRule, index, collection) => {
-            if (targetRule.type === "comment") return false;
-            if (targetRule.type === "font-face") return true;
+            // Remove rules with a specific type instantly
+            if (this._TYPES_TO_REMOVE.includes(targetRule.type)) return false;
+            // Force keep rules with a specific type instantly
+            if (this._TYPES_TO_KEEP(targetRule.type)) return true;
 
             // Target rule is media query?
             if (targetRule.type === "media") {
@@ -262,7 +272,7 @@ class CssTransformator {
             });
         };
 
-        // Iterate over all ast rules
+        // Iterate over all ast rules and only keep type "rule" and "media"
         for (let rule of _astRoot.rules) {
             // If rule is media going recursive with their rules
             if (rule.type === "media") {
@@ -275,6 +285,7 @@ class CssTransformator {
                 }
             } else {
                 debug("Unknow rule type => " + rule.type);
+                removeableRules.push(rule);
             }
         }
 
