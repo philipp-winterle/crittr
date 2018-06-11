@@ -13,8 +13,7 @@ module.exports = (options) => {
         } catch (err) {
             reject(err);
         }
-
-        log.timeEnd("Crittr Run");
         resolve(extractedCss);
+        log.timeEnd("Crittr Run");
     });
 };

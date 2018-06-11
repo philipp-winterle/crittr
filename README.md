@@ -16,3 +16,4 @@
 - page crash - recover url (page.url()) and retry
 
 ## Bugs
+- @charset is doubled

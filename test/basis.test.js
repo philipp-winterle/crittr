@@ -4,7 +4,8 @@ const path    = require('path');
 const css     = require('css');
 
 const rootDir      = path.join(__dirname, "..");
-const staticServer = require("../src/helper/localFileServer")(rootDir);
+const staticServer = require(path.join(rootDir, "src/helper/localFileServer"))(rootDir);
+const Rule         = require(path.join(rootDir, "src/classes/Rule.class"));
 
 const testData = {
     urls: [
@@ -17,33 +18,33 @@ const testData = {
 };
 
 describe('Basis Test', () => {
-    test('Run Critter with local test data', done => {
-        staticServer.listen(8000, async () => {
-            try {
-                const extractedCss = await Critter({
-                    urls:            testData.urls,
-                    css:             testData.css,
-                    device:          {
-                        width:  1920,
-                        height: 1080
-                    },
-                    keepSelectors:   [
-                        ".forceInclude"
-                    ],
-                    removeSelectors: [
-                        ".forceExclude"
-                    ]
-                });
-                fs.writeFileSync("./test/test_result.css", extractedCss, "utf-8");
-            } catch (err) {
-                done.fail(err)
-            }
-            staticServer.close();
-            done();
-        }).on("error", (err) => {
-            done.fail(err);
-        });
-    });
+//    test('Run Critter with local test data', done => {
+//        staticServer.listen(8000, async () => {
+//            try {
+//                const extractedCss = await Critter({
+//                    urls:            testData.urls,
+//                    css:             testData.css,
+//                    device:          {
+//                        width:  1920,
+//                        height: 1080
+//                    },
+//                    keepSelectors:   [
+//                        ".forceInclude"
+//                    ],
+//                    removeSelectors: [
+//                        ".forceExclude"
+//                    ]
+//                });
+//                fs.writeFileSync("./test/test_result.css", extractedCss, "utf-8");
+//            } catch (err) {
+//                done.fail(err)
+//            }
+//            staticServer.close();
+//            done();
+//        }).on("error", (err) => {
+//            done.fail(err);
+//        });
+//    });
 
     describe('Check Results', () => {
         const resultCSS      = fs.readFileSync(path.join(rootDir, "test", "test_result.css"), "utf8");
@@ -208,6 +209,48 @@ describe('Basis Test', () => {
                 }
             }
             expect(falseIncludedSelectors).toHaveLength(0);
+        });
+
+        test("Vendor prefixes still exists", () => {
+            const vendorPrefixRule   = resultAstRules.find(rule => rule.type === "rule" && rule.selectors.includes(".vendor_prefix"));
+            const vendorPrefixExists = vendorPrefixRule.declarations.some(declaration => declaration.property.startsWith("-webkit-")) === true
+                && vendorPrefixRule.declarations.some(declaration => declaration.property.startsWith("-moz-")) === true;
+
+            expect(vendorPrefixExists).toBeTruthy();
+        });
+
+        test("There should not be duplicates of rules", () => {
+            const getDeepDuplicates = (rules, excludedProps, media) => {
+                let duplicatedRules = [];
+                media = media || "";
+
+                for (const rule of rules) {
+                    if (rule.type === "media") {
+                        duplicatedRules = duplicatedRules.concat(getDeepDuplicates(rule.rules, excludedProps, rule.media));
+                    } else {
+                        let duplicateCount = 0;
+                        for (const innerRule of rules) {
+                            if (Rule.isRuleDuplicate(rule, innerRule, excludedProps)) {
+                                duplicateCount++;
+                            }
+                        }
+                        if (duplicateCount > 1) {
+                            // Put the rule into the duplicate Array but reduce the count by one because one is still needed :)
+                            const index = rule.type + (media ? " " + media + " " : "") + (rule.selectors ? rule.selectors.join(" ") : "");
+                            if (!duplicatedRules.includes(index)) {
+                                duplicatedRules.push(index);
+                            }
+                        }
+                    }
+
+                }
+
+                return duplicatedRules;
+            };
+
+            const excludedProps  = ["position"];
+            const duplicateRules = getDeepDuplicates(resultAstRules, excludedProps);
+            expect(duplicateRules).toHaveLength(0);
         });
 
     });
