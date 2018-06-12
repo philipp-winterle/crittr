@@ -52,7 +52,17 @@ class CriticalExtractor {
             dropKeyframes:       true,
             keepSelectors:       [],
             removeSelectors:     [],
-            blockRequests:       []
+            blockRequests:       [
+                "maps.gstatic.com",
+                "maps.googleapis.com",
+                "googletagmanager.com",
+                "google-analytics.com",
+                "google.",
+                "googleadservices.com",
+                "generaltracking.de",
+                "bing.com",
+                "doubleclick.net"
+            ]
 
         };
         this.options = merge(this.options, options);
@@ -399,19 +409,7 @@ class CriticalExtractor {
                                 }
                             }
                         }
-
-                        // TODO: json
-                        if (
-                            !url.includes("maps.gstatic.com") &&
-                            !url.includes("maps.googleapis.com") &&
-                            !url.includes("googletagmanager.com") &&
-                            !url.includes("generaltracking") &&
-                            !url.includes("doubleclick.net")
-                        ) {
-                            interceptedRequest.continue();
-                        } else {
-                            interceptedRequest.abort();
-                        }
+                        interceptedRequest.continue();
                     });
 
                     await page.emulate({
@@ -452,7 +450,7 @@ class CriticalExtractor {
             if (hasError === false) {
                 try {
                     debug("evaluateUrl - Extracting critical selectors");
-                    await page.waitFor(250);
+                    await page.waitFor(250); // Needed because puppeteer sometimes isnt able to handle quick tab openings
                     criticalSelectorsMap = new Map(await page.evaluate(extractCriticalCss_script, {
                         sourceAst:     sourceAst,
                         renderTimeout: this.options.renderTimeout,
@@ -465,9 +463,9 @@ class CriticalExtractor {
                     hasError = err;
                 }
 
-                debug("evaluateUrl - cleaning up sourceAST");
+                debug("evaluateUrl - cleaning up AST with criticalSelectorMap");
                 criticalAst = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
-                debug("evaluateUrl - cleaning up sourceAST - END");
+                debug("evaluateUrl - cleaning up AST with criticalSelectorMap - END");
             }
 
             if (hasError === false) {

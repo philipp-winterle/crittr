@@ -285,7 +285,6 @@ class CssTransformator {
                 // If media query rule is empty now -> remove
                 if (newRule && newRule.rules && newRule.rules.length === 0) {
                     removeableRules.push(newRule);
-                    log.log("RULE WURDE REMOVED", rule)
                 }
             } else if (rule.type === "rule") {
                 // If rule is rule -> check if selectors are in critical map
