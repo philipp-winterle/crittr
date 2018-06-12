@@ -362,7 +362,7 @@ class CssTransformator {
                 for (let targetRule of targetRules) {
                     // Does rule exists in targetRules?
                     // If not -> assimilate
-                    if (Rule.isSameRuleType(targetRule, rule) && Rule.isRuleTypeDuplicate(targetRule, rule)) {
+                    if (Rule.isSameRuleType(targetRule, rule) && Rule.isRuleDuplicate(targetRule, rule, ["position"])) {
                         isDuplicate = true;
                         break;
                     }

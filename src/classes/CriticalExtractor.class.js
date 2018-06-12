@@ -304,6 +304,7 @@ class CriticalExtractor {
                 try {
                     // Filter selectors which have to be force removed
                     astMap   = this._cssTransformator.filterSelector(astMap, this.options.removeSelectors);
+                    // Merge all extracted ASTs into a final one
                     finalAst = await this._cssTransformator.merge(finalAst, astMap);
                 } catch (err) {
                     reject(err);
