@@ -33,7 +33,7 @@ module.exports = () => {
                         ".forceExclude"
                     ]
                 });
-                fs.writeFileSync("./test/test_result.css", extractedCss, "utf-8");
+                fs.writeFileSync(path.join(rootDir, "./test/test_result.css"), extractedCss, "utf-8");
             } catch (err) {
                 reject(err)
             }
