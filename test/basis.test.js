@@ -31,7 +31,7 @@ describe('Basis Test', () => {
             } else if (rule.type === "media") {
                 const rules         = rule.rules;
                 const mediaSelector = rule.media;
-                // TODO: MACHE HIER MAL MIT mediaxxxx-selector
+
                 for (const rule of rules) {
                     if (rule.type === "rule") {
                         const pairedSelector = mediaSelector + "===" + rule.selectors.join(",");
@@ -215,6 +215,23 @@ describe('Basis Test', () => {
             const excludedProps  = ["position"];
             const duplicateRules = getDeepDuplicates(resultAstRules, excludedProps);
             expect(duplicateRules).toHaveLength(0);
+        });
+
+        it("There should not exist any empty selectors", () => {
+            const emptyRules = [];
+            for (const rule of resultAstRules) {
+                if (Rule.isMediaRule(rule)) {
+                    if (rule.rules && rule.rules.length === 0) {
+                        emptyRules.push(rule.media)
+                    }
+                } else {
+                    if (rule.declarations && rule.declarations.length === 0) {
+                        emptyRules.push(rule.selectors.join(" "))
+                    }
+                }
+            }
+
+            expect(emptyRules).toHaveLength(0);
         });
 
     });

@@ -137,6 +137,18 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+@media all and (min-width: 1024px) {
+    .standard-selector {
+        content: "double media query 1024 .standard-selector";
+    }
+}
+
+@media all and (min-width: 900px) {
+    .no-atf-css-default {
+        color: gold;
+    }
+}
+
 @media all and (min-width: 800px) {
     .standard-selector {
         color: black;

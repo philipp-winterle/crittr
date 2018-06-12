@@ -1,3 +1,9 @@
+/**
+ * Used to get the current live critical css without any impact of css
+ *
+ * @param options
+ * @returns {*}
+ */
 module.exports = (options) => {
     // ADJUSTMENTS
     const removePseudoSelectors = !!options.removePseudoSelectors;

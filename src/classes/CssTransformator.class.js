@@ -275,12 +275,18 @@ class CssTransformator {
 
         // Iterate over all ast rules and only keep type "rule" and "media"
         for (let rule of _astRoot.rules) {
-            // Free runs
-            if (rule.type)
 
             // If rule is media going recursive with their rules
             if (rule.type === "media") {
-                _astRoot.rules[_astRoot.rules.indexOf(rule)] = this.filterByMap(rule, selectorMap);
+                const ruleIndex    = _astRoot.rules.indexOf(rule);
+                const originalRule = _astRoot.rules[ruleIndex];
+                const newRule      = this.filterByMap(rule, selectorMap);
+                _astRoot.rules[ruleIndex] = newRule;
+                // If media query rule is empty now -> remove
+                if (newRule && newRule.rules && newRule.rules.length === 0) {
+                    removeableRules.push(newRule);
+                    log.log("RULE WURDE REMOVED", rule)
+                }
             } else if (rule.type === "rule") {
                 // If rule is rule -> check if selectors are in critical map
                 // If not - put them into the array to remove them later on
@@ -289,7 +295,7 @@ class CssTransformator {
                 }
             } else {
                 if (!this._TYPES_TO_KEEP.includes(rule.type)) {
-                    debug("Unknow rule type => " + rule.type);
+                    //debug("Dropping unusable rule type => " + rule.type);
                     removeableRules.push(rule);
                 }
             }
@@ -299,6 +305,7 @@ class CssTransformator {
         _astRoot.rules = _astRoot.rules.filter(rule => {
             return !removeableRules.includes(rule);
         });
+
         // Return the new AST Object
         return _ast;
     }
@@ -406,7 +413,6 @@ class CssTransformator {
             }
         }
     }
-
 
 }
 

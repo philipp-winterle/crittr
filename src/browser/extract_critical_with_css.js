@@ -1,3 +1,12 @@
+/**
+ * Used to extract critical css with the help of a source css. This will result in larger size because every vendor
+ * prefix is used.
+ *
+ * @param sourceAst
+ * @param renderTimeout
+ * @param keepSelectors
+ * @returns {*[]}
+ */
 module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
 
     // PRE CONFIG VARS
@@ -111,8 +120,10 @@ module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
         }
     };
 
-
-
+    /**
+     * Mutating criticalSelectors Map
+     * @param ast
+     */
     const gatherCriticalSelectors = (ast) => {
         let rules = [];
         let media = null;
@@ -140,7 +151,7 @@ module.exports = ({sourceAst, renderTimeout, keepSelectors}) => {
                     }
                 }
             } else {
-                console.log("UNPROCESSED RULE TYPE: " + rule.type);
+                console.debug("DEBUG: UNPROCESSED RULE TYPE: " + rule.type);
             }
         }
     };
