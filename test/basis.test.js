@@ -18,33 +18,33 @@ const testData = {
 };
 
 describe('Basis Test', () => {
-//    test('Run Critter with local test data', done => {
-//        staticServer.listen(8000, async () => {
-//            try {
-//                const extractedCss = await Critter({
-//                    urls:            testData.urls,
-//                    css:             testData.css,
-//                    device:          {
-//                        width:  1920,
-//                        height: 1080
-//                    },
-//                    keepSelectors:   [
-//                        ".forceInclude"
-//                    ],
-//                    removeSelectors: [
-//                        ".forceExclude"
-//                    ]
-//                });
-//                fs.writeFileSync("./test/test_result.css", extractedCss, "utf-8");
-//            } catch (err) {
-//                done.fail(err)
-//            }
-//            staticServer.close();
-//            done();
-//        }).on("error", (err) => {
-//            done.fail(err);
-//        });
-//    });
+    test('Run Critter with local test data', done => {
+        staticServer.listen(8000, async () => {
+            try {
+                const extractedCss = await Critter({
+                    urls:            testData.urls,
+                    css:             testData.css,
+                    device:          {
+                        width:  1920,
+                        height: 1080
+                    },
+                    keepSelectors:   [
+                        ".forceInclude"
+                    ],
+                    removeSelectors: [
+                        ".forceExclude"
+                    ]
+                });
+                fs.writeFileSync("./test/test_result.css", extractedCss, "utf-8");
+            } catch (err) {
+                done.fail(err)
+            }
+            staticServer.close();
+            done();
+        }).on("error", (err) => {
+            done.fail(err);
+        });
+    });
 
     describe('Check Results', () => {
         const resultCSS      = fs.readFileSync(path.join(rootDir, "test", "test_result.css"), "utf8");
