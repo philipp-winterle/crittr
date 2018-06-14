@@ -113,6 +113,7 @@ You can see the output of the time measurement after every run. So you will be a
 The CLI usage is not implemented yet :scream:. At the moment there is no need of cli usage, but if you need it just open an issue and I will try to get it done! :heart:  
 
 ## Options
+
 | Property | Values | Description |
 | ---------| ------ | ----------- |
 | **css** | string | Can be a plain css string or path to a css file. If it is a | path it has to end with `.css`! Otherwise it is not recognized as a path. |
