@@ -113,20 +113,20 @@ You can see the output of the time measurement after every run. So you will be a
 The CLI usage is not implemented yet :scream:. At the moment there is no need of cli usage, but if you need it just open an issue and I will try to get it done! :heart:  
 
 ## Options
-Property | Values | Description
----------| ------ | -----------
-**css** | string | Can be a plain css string or path to a css file. If it is a path it has to end with `.css`! Otherwise it is not recognized as a path.
-**urls** | Array | An array containing the urls to check the css against. Has to be at least 1 url.
-timeout | Number | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000
-pageLoadTimeout | Number | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stoped and the extraction continues. Default: 2000
-browser | Object | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for browser object.
-device | Object | Optional. Configuration object of device. E.g.  width, height, ... See documentation for device object.
-puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for puppeteer object.
-printBrowserConsole | Boolean | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false
-dropKeyframes | Boolean | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false
-keepSelectors | Array | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. Default: []
-removeSelectors: | Array | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. Default: []
-blockRequests | Array | Optional. Some of the requests made by pages are an
+| Property | Values | Description |
+| ---------| ------ | ----------- |
+| **css** | string | Can be a plain css string or path to a css file. If it is a | path it has to end with `.css`! Otherwise it is not recognized as a path. |
+**urls** | Array | An array containing the urls to check the css against. Has to be at least 1 url. |
+| timeout | Number | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000 |
+| pageLoadTimeout | Number | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stoped and the extraction continues. Default: 2000 |
+| browser | Object | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for browser object. |
+| device | Object | Optional. Configuration object of device. E.g.  width, height, ... See documentation for device object. |
+| puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for puppeteer object. |
+| printBrowserConsole | Boolean | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false |
+| dropKeyframes | Boolean | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false |
+| keepSelectors | Array | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. Default: [] |
+| removeSelectors: | Array | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. Default: [] |
+| blockRequests | Array | Optional. Some of the requests made by pages are an |
 
 ## FAQ :confused:
  - Why do I need to put my css file in when I only want to extract the critical css?
