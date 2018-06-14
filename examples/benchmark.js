@@ -1,14 +1,14 @@
 /**
  *  You need to install penthouse first to run this benchmark
- *  npm i penthouse --no-save
+ *  npm i penthouse criticalcss critical --no-save
  *
  *  node ./examples/benchmark.js
  */
 
 "use strict";
-const path              = require('path');
-const fs                = require('fs-extra');
-const penthouse         = require('penthouse');
+const path = require('path');
+const fs   = require('fs-extra');
+
 const chalk             = require('chalk');
 const CriticalExtractor = require('../index');
 const rootDir           = path.join(__dirname, "..");
@@ -68,7 +68,11 @@ staticServer.listen(8000, async () => {
         console.error(err);
     }
 
+    /**
+     *  PENTHOUSE
+     */
     console.log("Start Penthouse Benchmark");
+    const penthouse = require('penthouse');
     console.time("Penthouse");
     for (const url of urls) {
         try {
@@ -91,9 +95,63 @@ staticServer.listen(8000, async () => {
     }
     console.timeEnd("Penthouse");
 
+    /**
+     * CRITICALCSS
+     */
+    console.log("Start CriticalCss Benchmark");
+    const criticalcss = require("criticalcss");
+    console.time("CriticalCss");
+    const criticalCssWrapper = async () => {
+        for (const url of urls) {
+            await new Promise( resolve => {
+                criticalcss.getRules(path.join(rootDir, "/test/data/test.css"), function(err, output) {
+                    criticalcss.findCritical(url, {
+                        rules:        JSON.parse(output),
+                        width:        1920,
+                        height:       1080,
+                        forceInclude: [
+                            ".forceInclude"
+                        ]
+                    }, function (err, output) {
+                        if (err) {
+                            throw new Error(err);
+                        } else {
+                            resolve(output);
+                        }
+                    });
+                });
+            })
+        }
+        return;
+    };
+    await criticalCssWrapper();
+    console.timeEnd("CriticalCss");
+
+    /**
+     * CRITICALCSS
+     */
+    console.log("Start Critical Benchmark");
+    const critical = require('critical');
+    console.time("Critical");
+    for (const url of urls) {
+        critical.generate({
+            base: './',
+            src: './test/data/test.html',
+            dest: './test/data/test.css',
+            width:        1920,
+            height:       1080,
+            include: [
+                ".forceInclude"
+            ]
+        });
+
+    }
+    console.timeEnd("Critical");
+
     staticServer.close();
     process.exit(0);
 }).on("error", (err) => {
     console.error(err)
 });
+
 
