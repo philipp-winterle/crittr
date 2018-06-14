@@ -16,7 +16,7 @@ To determine the performance compared to the competitors a benchmark test was cr
 
 ## Getting Started
 ### Requirements
-Due to some dependecies of crittr you may need to install some additional software.
+Due to some dependencies of crittr you may need to install some additional software.
 Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
 
 ### Installation
@@ -119,15 +119,44 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | **css** | string | Can be a plain css string or path to a css file. If it is a path it has to end with `.css`! Otherwise it is not recognized as a path. |
 **urls** | Array | An array containing the urls to check the css against. Has to be at least 1 url. |
 | timeout | Number | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000 |
-| pageLoadTimeout | Number | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stoped and the extraction continues. Default: 2000 |
-| browser | Object | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for browser object. |
-| device | Object | Optional. Configuration object of device. E.g.  width, height, ... See documentation for device object. |
-| puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for puppeteer object. |
+| pageLoadTimeout | Number | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stopped and the extraction continues. Default: 2000 |
+| browser | Object | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for [browser object](#browser-options). |
+| device | Object | Optional. Configuration object of device. E.g.  width, height, ... See documentation for [device object](#device-options). |
+| puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for [puppeteer object](#puppeteer-options). |
 | printBrowserConsole | Boolean | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false |
 | dropKeyframes | Boolean | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false |
 | keepSelectors | Array | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. Default: [] |
 | removeSelectors: | Array | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. Default: [] |
 | blockRequests | Array | Optional. Some of the requests made by pages are an |
+
+### Browser options
+
+| Property | Values | Description |
+|----------|--------|-------------|
+| userAgent | String | Optional. Can be set to any existing user agent |
+| isCacheEnabled | Boolean | Optional. If set to false the browser will cache the result assets as normal behaviour. Default: true |
+| isJsEnabled: | Boolean | Optional. If set to false the execution of Javascript in the browser page is prevented. Default: true |
+| concurrentTabs | Number | Optional. Sets the maximal allowed concurrent tabs being opened at the same time in the browser. This is a useful option if the system has only low performance and to prevent high load. Default: 10 (Can also be set to "Infinity") |
+
+### Device options
+
+| Property | Values | Description |
+|----------|--------|-------------|
+| width | Number | Optional. Browser window width in px. Default: 1200 |
+| height | Number | Optional. Browser window height in px. Default: 1080 |
+| scaleFactor: | Number | Optional. Scaling factor of page. Only needed for mobile device emulation like iPhone. Default: 1 |
+| isMobile | Boolean | Optional. If set to true the device type for checking pages is set to mobile. Default: false |
+| isLandscape | Boolean | Optional. If set to true the device orientation is set to landscape. Default: false |
+| hasTouch | Boolean | Optional. If set to true the device viewing the page is assumed having touch. Default: false |
+
+### Puppeteer options
+
+| Property | Values | Description |
+|----------|--------|-------------|
+| browser | Promise<Puppeteer Browser> | Optional. If you already have an puppeteer browser instance created you can use it with this options to prevent crittr from creating a new one. Just for performance!. Default: null |
+| chromePath | String | Optional. Path to other Chrome or Chromium executable/bin file to use. . Default: Default Chromium shipped with puppeteer |
+| headless: | Boolean | Optional. If set to false the browser will launch with GUI to be visible while processing. Default: true |
+
 
 ## FAQ :confused:
  - Why do I need to put my css file in when I only want to extract the critical css?
