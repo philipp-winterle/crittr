@@ -12,7 +12,7 @@
 ## Performance
 To determine the performance compared to the competitors a benchmark test was created. To achieve the results the benchmark uses a set of 20 urls for one css file. This is repeated for every library. Due to the fact that crittr was build to handle multiple urls it has an obvious advantage. Nevertheless the other libraries like penthouse or critical (uses penthouse) are also fast in single processing. But I would say this will not be a common use case anymore. :no_good:
 
-[[https://github.com/hummal/crittr/blob/master/docs/img/crittr_benchmark.png|alt=Benchmark]]
+[[https://raw.githubusercontent.com/hummal/crittr/master/docs/img/crittr_benchmark.png|alt=Benchmark]]
 
 ## Getting Started
 ### Requirements
