@@ -1,6 +1,6 @@
-# Crittr
+# crittr
 > High performance critical css extraction with a great configuration abilities.
-> Crittr uses puppeteer as lower layer to extract the critical path stylesheet rules of a single or multiple urls. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this faster than any other library! :muscle:
+> crittr uses puppeteer as lower layer to extract the critical path stylesheet rules of a single or multiple urls. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this faster than any other library! :muscle:
 
 #### Feature Facts
 * Faster than other libraries doing similar work (factor 4x)
@@ -16,17 +16,17 @@ To determine the performance compared to the competitors a benchmark test was cr
 
 ## Getting Started
 ### Requirements
-Due to some dependecies of Crittr you may need to install some additional software.
+Due to some dependecies of crittr you may need to install some additional software.
 Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
 
 ### Installation
-To use Crittr as a module or cli in your nodejs environment just install it with
+To use crittr as a module or cli in your nodejs environment just install it with
 ```
 npm i crittr
 ```
 ### Usage
 #### Modul usage
-To use Crittr as a module just require it and choose your options
+To use crittr as a module just require it and choose your [options](#options)
 
 ##### Basic
 ```javascript
@@ -51,7 +51,7 @@ Crittr({
     console.error(err);
 });
 ```
-As you can also read in the options section there is the possibility to use a css file as a path instead of a string. If the path provided ends with `.css` it is treated as a file path.
+As you can also read in the [options](#options) section there is the possibility to use a css file as a path instead of a string. If the path provided ends with `.css` it is treated as a file path.
 ```javascript
 const Crittr = require('crittr');
 
@@ -65,7 +65,7 @@ Crittr({
 });
 ```
  
-Due to the fact, that Crittr is returning a **Promise<String>** you can also use async/await syntax to handle the result.
+Due to the fact, that crittr is returning a **Promise<String>** you can also use async/await syntax to handle the result.
 ```javascript
 ( async () => {
     const Crittr = require('crittr');
@@ -83,7 +83,7 @@ Due to the fact, that Crittr is returning a **Promise<String>** you can also use
 ```
 
 ##### Advanced - Multiple urls
-To use the full power of Crittr and get the most of the performance advantage you should pass in multiple urls. As of the fact that the most websites use one css file for multiple pages this is the ultimate way to get the critical css for all of them!
+To use the full power of crittr and get the most of the performance advantage you should pass in multiple urls. As of the fact that the most websites use one css file for multiple pages this is the ultimate way to get the critical css for all of them!
 ```javascript
 const Crittr = require('crittr');
 
