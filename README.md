@@ -115,7 +115,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 ## Options
 
 | Property | Values | Description |
-| ---------| ------ | ----------- |
+|----------|--------|-------------|
 | **css** | string | Can be a plain css string or path to a css file. If it is a | path it has to end with `.css`! Otherwise it is not recognized as a path. |
 **urls** | Array | An array containing the urls to check the css against. Has to be at least 1 url. |
 | timeout | Number | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000 |
