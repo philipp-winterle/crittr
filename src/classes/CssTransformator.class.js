@@ -1,11 +1,6 @@
 "use strict";
-
-const path            = require('path');
-const fs              = require('fs-extra');
-const util            = require('util');
-const readFilePromise = util.promisify(fs.readFile);
 const _               = require('lodash');
-const debug           = require('debug')("CriticalExtractor CSSTransformator");
+const debug           = require('debug')("Crittr CSSTransformator");
 const log             = require('signale');
 const merge           = require('deepmerge');
 const css             = require('css');

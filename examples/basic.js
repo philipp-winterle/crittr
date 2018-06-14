@@ -1,11 +1,11 @@
 "use strict";
-const path              = require('path');
-const fs                = require('fs-extra');
-const CriticalExtractor = require('../index');
-const rootDir           = path.join(__dirname, "..");
+const path    = require('path');
+const fs      = require('fs-extra');
+const Crittr  = require('../index');
+const rootDir = path.join(__dirname, "..");
 
 console.log("Server listening");
-CriticalExtractor({
+Crittr({
     urls:   [
         "https://github.com/"
     ],

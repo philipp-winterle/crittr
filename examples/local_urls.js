@@ -1,9 +1,9 @@
 "use strict";
-const path              = require('path');
-const fs                = require('fs-extra');
-const CriticalExtractor = require('../index');
-const rootDir           = path.join(__dirname, "..");
-const staticServer      = require("../src/helper/localFileServer")(rootDir);
+const path         = require('path');
+const fs           = require('fs-extra');
+const Crittr       = require('../index');
+const rootDir      = path.join(__dirname, "..");
+const staticServer = require("../src/helper/localFileServer")(rootDir);
 
 const testCase = {
     urls: [
@@ -18,21 +18,21 @@ const testCase = {
 staticServer.listen(8000, async () => {
     console.log("Server listening");
     try {
-        const extractedCss = await CriticalExtractor({
-            urls:                testCase.urls,
-            css:                 testCase.css,
-            timeout:             30000,
-            device:              {
+        const extractedCss = await Crittr({
+            urls:            testCase.urls,
+            css:             testCase.css,
+            timeout:         30000,
+            device:          {
                 width:  1920,
                 height: 1080
             },
-            browser:             {
+            browser:         {
                 concurrentTabs: Infinity
             },
-            keepSelectors:       [
+            keepSelectors:   [
                 ".forceInclude"
             ],
-            removeSelectors:     [
+            removeSelectors: [
                 ".forceExclude"
             ]
         });

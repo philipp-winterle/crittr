@@ -3,8 +3,7 @@
 const fs              = require('fs-extra');
 const util            = require('util');
 const readFilePromise = util.promisify(fs.readFile);
-const _               = require('lodash');
-const debug           = require('debug')("CriticalExtractor Class");
+const debug           = require('debug')("Crittr Class");
 const log             = require('signale');
 const chalk           = require('chalk');
 const merge           = require('deepmerge');
@@ -16,12 +15,34 @@ const DEFAULTS        = require('../Constants');
 const CssTransformator          = require('./CssTransformator.class');
 const extractCriticalCss_script = require('../browser/extract_critical_with_css');
 
-class CriticalExtractor {
+/**
+ * CRITTR Class
+ */
+class Crittr {
 
     /**
+     * Crittr Class to extract critical css from an given url
      *
-     * @param options
-     * @returns {Promise<any>}
+     * @param {Object}  [options]                               - The options object itself
+     * @param {string}  options.css                             - Can be a file path or css string
+     * @param {number}  [options.timeout=30000]                 - After this time the navigation to the page will be stopped. Prevents
+     *                                                          execution time explosion
+     * @param {number}  [options.pageLoadTimeout=2000]          - after load event of page this time is set to wait for x seconds
+     *                                                          until the page load is manually stopped
+     * @param {Object}  [options.browser]                       - Browser configuration object
+     * @param {Object}  [options.device]                        - Device configuration object
+     * @param {Object}  [options.puppeteer]                     - Puppeteer configuration object
+     * @param {Boolean} [options.printBrowserConsole=false]     - Enables browser console output to stdout if set to true.
+     * @param {Boolean} [options.dropKeyframes=true]            - Drops keyframe rules if set to true.
+     * @param {Boolean} [options.dropKeyframes=true]            - Drops keyframe rules if set to true.
+     * @param {Array}   [options.keepSelectors=[]]              - Array list of selectors which have to be kept in
+     *                                                          critical css even if they are NOT part of it
+     * @param {Array}   [options.removeSelectors=[]]            - Array list of selectors which have to be removed in
+     *                                                          critical css even if they are part of it
+     * @param {Array}   [options.blockRequests=[...]            - URLs of websites mostly used to be part of tracking or
+     *                                                          analytics. Not needed for critical css so they are aborted
+     *
+     * @returns Promise<String>
      */
     constructor(options) {
         this.options = {
@@ -30,7 +51,7 @@ class CriticalExtractor {
             timeout:             DEFAULTS.TIMEOUT,
             pageLoadTimeout:     DEFAULTS.PAGE_LOAD_TIMEOUT,
             browser:             {
-                userAgent:      DEFAULTS.USER_AGENT,
+                userAgent:      DEFAULTS.BROWSER_USER_AGENT,
                 isCacheEnabled: DEFAULTS.BROWSER_CACHE_ENABLED,
                 isJsEnabled:    DEFAULTS.BROWSER_JS_ENABLED,
                 concurrentTabs: DEFAULTS.BROWSER_CONCURRENT_TABS
@@ -48,8 +69,8 @@ class CriticalExtractor {
                 chromePath: null,
                 headless:   DEFAULTS.PUPPETEER_HEADLESS
             },
-            printBrowserConsole: false,
-            dropKeyframes:       true,
+            printBrowserConsole: DEFAULTS.PRINT_BROWSER_CONSOLE,
+            dropKeyframes:       DEFAULTS.DROP_KEYFRAMES,
             keepSelectors:       [],
             removeSelectors:     [],
             blockRequests:       [
@@ -514,4 +535,4 @@ class CriticalExtractor {
 
 }
 
-module.exports = CriticalExtractor;
+module.exports = Crittr;

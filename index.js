@@ -1,15 +1,15 @@
 "use strict";
 
 const log           = require('signale');
-const CriticalExtractor = require('./src/classes/CriticalExtractor.class');
+const Crittr = require('./src/classes/Crittr.class');
 
 module.exports = (options) => {
     return new Promise(async (resolve, reject) => {
         log.time("Crittr Run");
-        const ce         = new CriticalExtractor(options);
+        const crttr         = new Crittr(options);
         let extractedCss = "";
         try {
-            extractedCss = await ce.run();
+            extractedCss = await crttr.run();
         } catch (err) {
             reject(err);
         }

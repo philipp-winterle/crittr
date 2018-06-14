@@ -9,10 +9,10 @@
 const path = require('path');
 const fs   = require('fs-extra');
 
-const chalk             = require('chalk');
-const CriticalExtractor = require('../index');
-const rootDir           = path.join(__dirname, "..");
-const staticServer      = require("../src/helper/localFileServer")(rootDir);
+const chalk        = require('chalk');
+const Crittr       = require('../index');
+const rootDir      = path.join(__dirname, "..");
+const staticServer = require("../src/helper/localFileServer")(rootDir);
 
 staticServer.listen(8000, async () => {
     console.log("Server listening");
@@ -44,8 +44,8 @@ staticServer.listen(8000, async () => {
 
     try {
         console.log("Start Critter Benchmark");
-        console.time("CriticalExtractor");
-        const extractedCss = await CriticalExtractor({
+        console.time("Crittr");
+        const extractedCss = await Crittr({
             urls:            urls,
             css:             rootDir + "/test/data/test.css",
             device:          {
@@ -63,7 +63,7 @@ staticServer.listen(8000, async () => {
             }
 
         });
-        console.timeEnd("CriticalExtractor")
+        console.timeEnd("Crittr")
     } catch (err) {
         console.error(err);
     }
@@ -103,8 +103,8 @@ staticServer.listen(8000, async () => {
     console.time("CriticalCss");
     const criticalCssWrapper = async () => {
         for (const url of urls) {
-            await new Promise( resolve => {
-                criticalcss.getRules(path.join(rootDir, "/test/data/test.css"), function(err, output) {
+            await new Promise(resolve => {
+                criticalcss.getRules(path.join(rootDir, "/test/data/test.css"), function (err, output) {
                     criticalcss.findCritical(url, {
                         rules:        JSON.parse(output),
                         width:        1920,
@@ -135,11 +135,11 @@ staticServer.listen(8000, async () => {
     console.time("Critical");
     for (const url of urls) {
         critical.generate({
-            base: './',
-            src: './test/data/test.html',
-            dest: './test/data/test.css',
-            width:        1920,
-            height:       1080,
+            base:    './',
+            src:     './test/data/test.html',
+            dest:    './test/data/test.css',
+            width:   1920,
+            height:  1080,
             include: [
                 ".forceInclude"
             ]

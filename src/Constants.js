@@ -2,8 +2,10 @@ const path         = require('path');
 const package_json = require(path.join("..", "package.json"));
 
 module.exports = {
-    USER_AGENT:              "CriticalExtractor " + package_json.version,
+    PRINT_BROWSER_CONSOLE:   false,
+    DROP_KEYFRAMES:          true,
     PUPPETEER_HEADLESS:      true,
+    BROWSER_USER_AGENT:              "Crittr " + package_json.version,
     BROWSER_CACHE_ENABLED:   false,
     BROWSER_JS_ENABLED:      true,
     BROWSER_CONCURRENT_TABS: 5,
