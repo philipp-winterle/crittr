@@ -1,7 +1,5 @@
 "use strict";
 
-const path            = require('path');
-const url             = require('url');
 const fs              = require('fs-extra');
 const util            = require('util');
 const readFilePromise = util.promisify(fs.readFile);
@@ -10,6 +8,7 @@ const debug           = require('debug')("CriticalExtractor Class");
 const log             = require('signale');
 const chalk           = require('chalk');
 const merge           = require('deepmerge');
+const Queue           = require('run-queue');
 const puppeteer       = require('puppeteer');
 const devices         = require('puppeteer/DeviceDescriptors');
 const DEFAULTS        = require('../Constants');
@@ -30,11 +29,11 @@ class CriticalExtractor {
             urls:                [],
             timeout:             DEFAULTS.TIMEOUT,
             pageLoadTimeout:     DEFAULTS.PAGE_LOAD_TIMEOUT,
-            renderTimeout:       DEFAULTS.PAGE_RENDER_TIMEOUT,
             browser:             {
                 userAgent:      DEFAULTS.USER_AGENT,
                 isCacheEnabled: DEFAULTS.BROWSER_CACHE_ENABLED,
-                isJsEnabled:    DEFAULTS.BROWSER_JS_ENABLED
+                isJsEnabled:    DEFAULTS.BROWSER_JS_ENABLED,
+                concurrentTabs: DEFAULTS.BROWSER_CONCURRENT_TABS
             },
             device:              {
                 width:       DEFAULTS.DEVICE_WIDTH,
@@ -46,7 +45,8 @@ class CriticalExtractor {
             },
             puppeteer:           {
                 browser:    null,
-                chromePath: null
+                chromePath: null,
+                headless:   DEFAULTS.PUPPETEER_HEADLESS
             },
             printBrowserConsole: false,
             dropKeyframes:       true,
@@ -176,13 +176,14 @@ class CriticalExtractor {
                 const browser = await puppeteer.launch({
                     ignoreHTTPSErrors: true,
                     args:              [
-//                        '--disable-setuid-sandbox',
+                        '--disable-setuid-sandbox',
                         '--no-sandbox',
-                        '--ignore-certificate-errors'
+                        '--ignore-certificate-errors',
+                        '--disable-dev-shm-usage'
 //                        '--no-gpu'
                     ],
                     dumpio:            false,
-                    headless:          true,
+                    headless:          this.options.puppeteer.headless,
                     executablePath:    this.options.puppeteer.chromePath
                 }).then(browser => {
                     return browser;
@@ -265,69 +266,72 @@ class CriticalExtractor {
 
     getCriticalCssFromUrls() {
         return new Promise(async (resolve, reject) => {
-            let errors                    = [];
-            const urls                    = this.options.urls;
-            const browserPagesPromisesSet = new Set();
-            const criticalAstSets         = new Set();
-            const sourceCssAst            = this._cssTransformator.getAst(this._cssContent);
+            let errors            = [];
+            const urls            = this.options.urls;
+            const criticalAstSets = new Set();
+            const sourceCssAst    = this._cssTransformator.getAst(this._cssContent);
 
-            // Iterate over the array of urls and create a promise for every url
-            for (let url of urls) {
-                browserPagesPromisesSet.add({
-                    promise: this.evaluateUrl(url, sourceCssAst),
-                    url:     url
-                });
-            }
+            const queue = new Queue({
+                maxConcurrency: this.options.browser.concurrentTabs
+            });
 
-            // Iterate over the evaluation promises and get the results of each
-            if (browserPagesPromisesSet.size > 0) {
-                // All pages are evaluted?
-                for (let pagePromiseObj of browserPagesPromisesSet) {
-                    let criticalAst = null;
-                    try {
-                        debug("getCriticalCssFromUrls - Try to get critical ast from " + pagePromiseObj.url);
-                        criticalAst = await pagePromiseObj.promise;
-                        debug("getCriticalCssFromUrls - Successfully extracted critical ast!");
-                        criticalAstSets.add(criticalAst);
-                    } catch (err) {
-                        debug("getCriticalCssFromUrls - ERROR getting critical ast from promise");
-                        log.error("Could not get critical ast for url " + pagePromiseObj.url);
-                        log.error(err);
-                        errors.push(err);
-                    }
-                }
-            }
+            // Add to queue
 
-            if (criticalAstSets.size === 0) {
-                reject(errors);
-            }
-
-            // Go through the critical set and create one out of many
-            let finalAst = {
-                "type":       "stylesheet",
-                "stylesheet": {
-                    "rules": []
+            const queueEvaluateFn = async (url, sourceCssAst, criticalAstSets) => {
+                try {
+                    debug("getCriticalCssFromUrls - Try to get critical ast from " + url);
+                    const criticalAst = await this.evaluateUrl(url, sourceCssAst);
+                    criticalAstSets.add(criticalAst);
+                    debug("getCriticalCssFromUrls - Successfully extracted critical ast!");
+                } catch (err) {
+                    debug("getCriticalCssFromUrls - ERROR getting critical ast from promise");
+                    log.error("Could not get critical ast for url " + url);
+                    log.error(err);
+                    errors.push(err);
                 }
             };
 
-            for (let astMap of criticalAstSets) {
-                try {
-                    // Filter selectors which have to be force removed
-                    astMap   = this._cssTransformator.filterSelector(astMap, this.options.removeSelectors);
-                    // Merge all extracted ASTs into a final one
-                    finalAst = await this._cssTransformator.merge(finalAst, astMap);
-                } catch (err) {
-                    reject(err);
-                }
+            for (let url of urls) {
+                queue.add(1, queueEvaluateFn, [url, sourceCssAst, criticalAstSets]);
             }
 
-            // TODO: Filter AST by keepSelectors
-            // remember to use wildcards. Greedy seems to be the perfect fit
-            // Just *selector* matches all selector that have at least selector in their string
-            // *sel* needs only sel and so on
+            queue
+                .run()
+                .then(async () => {
+                    if (criticalAstSets.size === 0) {
+                        reject(errors);
+                    }
 
-            const finalCss = this._cssTransformator.getCssFromAst(finalAst);
-            resolve([finalCss.code, errors]);
+                    // Go through the critical set and create one out of many
+                    let finalAst = {
+                        "type":       "stylesheet",
+                        "stylesheet": {
+                            "rules": []
+                        }
+                    };
+
+                    for (let astMap of criticalAstSets) {
+                        try {
+                            // Filter selectors which have to be force removed
+                            astMap   = this._cssTransformator.filterSelector(astMap, this.options.removeSelectors);
+                            // Merge all extracted ASTs into a final one
+                            finalAst = await this._cssTransformator.merge(finalAst, astMap);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    }
+
+                    // TODO: Filter AST by keepSelectors
+                    // remember to use wildcards. Greedy seems to be the perfect fit
+                    // Just *selector* matches all selector that have at least selector in their string
+                    // *sel* needs only sel and so on
+
+                    const finalCss = this._cssTransformator.getCssFromAst(finalAst);
+                    resolve([finalCss.code, errors]);
+                })
+                .catch(err => {
+                    reject(err);
+                });
         }); // End of Promise
     }
 
@@ -398,6 +402,7 @@ class CriticalExtractor {
                     await page.setRequestInterception(true);
 
                     const blockRequests = this.options.blockRequests;
+
                     // Remove tracking from pages (at least the well known ones
                     page.on('request', interceptedRequest => {
                         const url = interceptedRequest.url();
@@ -411,6 +416,19 @@ class CriticalExtractor {
                         }
                         interceptedRequest.continue();
                     });
+
+                    // For DEBUG reasons
+//                    page.on('load', () => {
+//                        debug("EVENT: load - triggered for " + page.url());
+//                    });
+
+//                    page.on('requestfailed', request => {
+//                        startedRequests.splice(startedRequests.indexOf(request.url()), 1);
+//                    });
+//
+//                    page.on('requestfinished', request => {
+//                        startedRequests.splice(startedRequests.indexOf(request.url()), 1);
+//                    });
 
                     await page.emulate({
                         viewport:  {
@@ -437,11 +455,13 @@ class CriticalExtractor {
                     debug("evaluateUrl - Navigating page to " + url);
                     await page.goto(url, {
                         timeout:   this.options.timeout,
-                        waitUntil: 'networkidle2'
+                        waitUntil: [
+                            'networkidle2'
+                        ]
                     });
                     debug("evaluateUrl - Page navigated");
                 } catch (err) {
-                    debug("evaluateUrl - Error while page.goto -> abort?");
+                    debug("evaluateUrl - Error while page.goto -> " + url);
                     hasError = err;
 
                 }
@@ -453,7 +473,7 @@ class CriticalExtractor {
                     await page.waitFor(250); // Needed because puppeteer sometimes isnt able to handle quick tab openings
                     criticalSelectorsMap = new Map(await page.evaluate(extractCriticalCss_script, {
                         sourceAst:     sourceAst,
-                        renderTimeout: this.options.renderTimeout,
+                        loadTimeout:   this.options.pageLoadTimeout,
                         keepSelectors: this.options.keepSelectors,
                         dropKeyframes: this.options.dropKeyframes
                     }));

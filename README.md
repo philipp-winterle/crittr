@@ -11,7 +11,6 @@
 - wildcards
 - positioning of critical css rules 
 - multi selector partial matches ? needed?
-- Max parallel tabs (suggested 4 to 5)
 - option js disabled (test for extracting with renderTimeout)
 - page crash - recover url (page.url()) and retry
 
