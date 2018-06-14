@@ -1,4 +1,2 @@
 # Dependencies
-markdown:    kramdown
-highlighter: pygments
 theme: jekyll-theme-cayman
