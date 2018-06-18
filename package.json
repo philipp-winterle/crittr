@@ -1,7 +1,7 @@
 {
   "name": "crittr",
   "version": "1.0.1",
-  "description": "",
+  "description": "Crittr is a high performance critical css extraction library with a multiple url support.",
   "author": "Philipp Winterle",
   "license": "GPL-3.0",
   "bugs": {
