@@ -12,7 +12,7 @@ const fs   = require('fs-extra');
 const chalk        = require('chalk');
 const Crittr       = require('../index');
 const rootDir      = path.join(__dirname, "..");
-const staticServer = require("../src/helper/localFileServer")(rootDir);
+const staticServer = require("../lib/helper/localFileServer")(rootDir);
 
 staticServer.listen(8000, async () => {
     console.log("Server listening");

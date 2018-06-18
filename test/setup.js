@@ -3,7 +3,7 @@ const fs      = require('fs-extra');
 const path    = require('path');
 
 const rootDir      = path.join(__dirname, "..");
-const staticServer = require(path.join(rootDir, "src/helper/localFileServer"))(rootDir);
+const staticServer = require(path.join(rootDir, "lib/helper/localFileServer"))(rootDir);
 
 const testData = {
     urls: [

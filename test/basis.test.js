@@ -4,8 +4,8 @@ const path    = require('path');
 const css     = require('css');
 
 const rootDir      = path.join(__dirname, "..");
-const staticServer = require(path.join(rootDir, "src/helper/localFileServer"))(rootDir);
-const Rule         = require(path.join(rootDir, "src/classes/Rule.class"));
+const staticServer = require(path.join(rootDir, "lib/helper/localFileServer"))(rootDir);
+const Rule         = require(path.join(rootDir, "lib/classes/Rule.class"));
 
 
 
