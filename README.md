@@ -1,6 +1,6 @@
 # crittr
-> High performance critical css extraction with a great configuration abilities.
-> crittr uses puppeteer as lower layer to extract the critical path stylesheet rules of a single or multiple urls. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this faster than any other library! :muscle:
+> High performance critical css extraction with a great configuration abilities. 
+> crittr enables you to extract the critical path stylesheet rules of a single or multiple urls with lightning speed. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this faster than any other library! :muscle:
 
 #### Feature Facts
 * Faster than other libraries doing similar work (factor 4x)
@@ -14,10 +14,19 @@ To determine the performance compared to the competitors a benchmark test was cr
 
 ![Benchmark](/docs/img/crittr_benchmark.png)
 
+To replay the benchmarks you can use the [benchmark example](https://github.com/hummal/crittr/blob/master/examples/benchmark.js) in this repository.
+
 ## Getting Started
 ### Requirements
-Due to some dependencies of crittr you may need to install some additional software.
-Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
+
+- minimum nodejs > 7.6 | recommended nodejs 8+
+  - async/await
+  - Promises
+- puppeteer dependecies on UNIX bases OS (including MacOSX)
+
+> Due to some dependencies of crittr you may need to install some additional software.
+> Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
+
 
 ### Installation
 To use crittr as a module or cli in your nodejs environment just install it with
@@ -164,6 +173,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 
 ## Upcoming :trumpet:
 
+- [ ] :star: cookie includes
 - [ ] :star: wildcards
 - [ ] :grey_question: positioning of critical css rules 
 - [ ] :grey_question: multi selector partial matches ? needed?

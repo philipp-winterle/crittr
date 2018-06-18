@@ -1,9 +1,9 @@
 "use strict";
-const _               = require('lodash');
-const debug           = require('debug')("Crittr CSSTransformator");
-const log             = require('signale');
-const merge           = require('deepmerge');
-const css             = require('css');
+const _     = require('lodash');
+const debug = require('debug')("Crittr CSSTransformator");
+const log   = require('signale');
+const merge = require('deepmerge');
+const css   = require('css');
 
 const Rule = require("./Rule.class");
 
@@ -68,94 +68,6 @@ class CssTransformator {
             sourcemap:       true,
             inputSourcemaps: true
         })
-    }
-
-    matchesForceInclude(selector, forceInclude) {
-        return forceInclude.some((includeSelector) => {
-            if (includeSelector.type === 'RegExp') {
-                const {source, flags} = includeSelector;
-                const re              = new RegExp(source, flags);
-                return re.test(selector);
-            }
-            return includeSelector.value === selector;
-        })
-    }
-
-    /**
-     * Filters targetAst to not contain any other values then in sourceAst
-     * TODO: ignore keyframes rules
-     *
-     * @param sourceAst {Object}
-     * @param targetAst {Object}
-     *
-     * @returns {Promise<any>}
-     */
-    filter(sourceAst, targetAst) {
-        return new Promise((resolve, reject) => {
-            debug("filter - Filtering ast from source");
-            if (targetAst.stylesheet) {
-                let targetRules      = targetAst.stylesheet.rules;
-                sourceAst.stylesheet = sourceAst.stylesheet || {rules: []};
-                let sourceRules      = sourceAst.stylesheet.rules;
-
-                targetAst.stylesheet.rules = this.filterRules(sourceRules, targetRules);
-
-                debug("filter - Successfully filtered AST!");
-                resolve(targetAst);
-            } else {
-                debug("filter - ERROR no stylesheet property");
-                reject(new Error("Target AST has no root node stylesheet. Stylesheet is properly wrong!"));
-            }
-        });
-    }
-
-    filterRules(sourceRules, targetRules) {
-        return _.filter(targetRules, (targetRule, index, collection) => {
-            // Remove rules with a specific type instantly
-            if (this._TYPES_TO_REMOVE.includes(targetRule.type)) return false;
-            // Force keep rules with a specific type instantly
-            if (this._TYPES_TO_KEEP(targetRule.type)) return true;
-
-            // Target rule is media query?
-            if (targetRule.type === "media") {
-                // Get an array of all matching source media rules
-                let matchingSourceMediaArr = [];
-
-                for (let sourceRule of sourceRules) {
-                    if (sourceRule.type === "comment") continue;
-                    // Only respect matching media queries
-                    if (sourceRule.type === "media") {
-                        if (Rule.isMatchingMediaRuleSelector(targetRule.media, sourceRule.media)) {
-                            matchingSourceMediaArr = matchingSourceMediaArr.concat(sourceRule.rules);
-                        }
-                    }
-                }
-
-                targetRule.rules = _.filter(targetRule.rules, (targetMediaRule, index, collection) => {
-                    for (let sourceMediaRule of matchingSourceMediaArr) {
-                        const hasIdenticalSelectors = _.isEqual(sourceMediaRule.selectors, targetMediaRule.selectors);
-                        if (hasIdenticalSelectors === true) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
-
-                return targetRule.rules.length > 0;
-            } else {
-                for (let sourceRule of sourceRules) {
-                    if (sourceRule.type === "comment") continue;
-                    // Are the sourceRule selectors the same as the targetRule selectors -> keep
-                    // TODO: hier kommt schon weniger CSS an. Siehe README BUGS
-                    const hasIdenticalSelectors = this.isSameRuleType(sourceRule, targetRule) && _.isEqual(sourceRule.selectors, targetRule.selectors);
-                    if (hasIdenticalSelectors === true) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        });
     }
 
     /**
@@ -240,9 +152,9 @@ class CssTransformator {
      * Filters the AST Object with the selectorMap <Map> containing selectors.
      * Returns a new AST Object without those selectors. Does NOT mutate the AST.
      *
-     * @param ast {Object}
-     * @param selectorMap {Map}
-     * @returns {Object<AST>}
+     * @param   {Object} ast
+     * @param   {Map}    selectorMap
+     * @returns {Object} AST
      */
     filterByMap(ast, selectorMap) {
         let _ast            = JSON.parse(JSON.stringify(ast));
@@ -273,9 +185,9 @@ class CssTransformator {
 
             // If rule is media going recursive with their rules
             if (rule.type === "media") {
-                const ruleIndex    = _astRoot.rules.indexOf(rule);
-                const originalRule = _astRoot.rules[ruleIndex];
-                const newRule      = this.filterByMap(rule, selectorMap);
+                const ruleIndex           = _astRoot.rules.indexOf(rule);
+                const originalRule        = _astRoot.rules[ruleIndex];
+                const newRule             = this.filterByMap(rule, selectorMap);
                 _astRoot.rules[ruleIndex] = newRule;
                 // If media query rule is empty now -> remove
                 if (newRule && newRule.rules && newRule.rules.length === 0) {
@@ -308,8 +220,8 @@ class CssTransformator {
      * Merge mergeAst into targetAst.
      * Keep targetAst properties if duplicate
      *
-     * @param targetAst
-     * @param mergeAst
+     * @param   {Object}          targetAst
+     * @param   {Object}          mergeAst
      * @returns {Promise<Object>} AST
      */
     merge(targetAst, mergeAst) {
@@ -349,8 +261,8 @@ class CssTransformator {
      *
      * NOTE: Muates the targetRules Array
      *
-     * @param rule {Object}
-     * @param targetRules {Array}
+     * @param {Object} rule
+     * @param {Array}  targetRules
      */
     mergeRule(rule, targetRules) {
         // Handle media queries

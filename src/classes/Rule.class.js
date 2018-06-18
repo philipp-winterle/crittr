@@ -3,16 +3,19 @@ const _               = require('lodash');
 /**
  * Rule Class with static functions to handle rule comparision and more
  *
- * @Static
+ * @static
  */
 class Rule {
 
     /**
      * Checks if rule is a native duplicate. Checks all properties but excluded
+     * @static
      *
      * @param rule1
      * @param rule2
      * @param excludedProperties
+     *
+     * @return {boolean}
      */
     static isRuleDuplicate(rule1, rule2, excludedProperties) {
         excludedProperties = excludedProperties || [];
@@ -24,53 +27,14 @@ class Rule {
         return hasSameProperties;
     }
 
-
     /**
-     * Returns true if rule1 is a duplicate of rule2.
-     * Only for Rule Type "media"
+     *  Compares 2 ast rules by type
      *
-     * @param rule1 {Object}
-     * @param rule2 {Object}
+     * @static
+     * @param {!Object} rule1
+     * @param {!Object} rule2
      * @returns {boolean}
      */
-    static isRuleTypeDuplicate(rule1, rule2) {
-        // Same selectors?? -> Check declaration if same
-        if (rule1.selectors && rule2.selectors && _.isEqual(rule1.selectors, rule2.selectors)) {
-            let r1Declarations = rule1.declarations;
-            let r2Declarations = rule2.declarations;
-
-            // Check diff by length
-            if (r1Declarations.length !== r2Declarations.length) {
-                return false;
-            } else {
-                // Same length! Check single declarations
-                let r1DeclCount   = r1Declarations.length;
-                let r2DeclMatches = 0;
-
-                // Iterate over both declarations and check diff in detail
-                // we only count the amount of hits of the same declaration and comparing the result count
-                // with the previous count of declarations to be merged. If they are equal
-                // we got the same rule
-                for (let r1Decl of r1Declarations) {
-                    for (let r2Decl of r2Declarations) {
-                        // Is declaration the same?
-                        if (r2Decl.property === r1Decl.property && r2Decl.value === r1Decl.value) {
-                            r2DeclMatches++;
-                            break;
-                        }
-                    }
-                }
-
-                // Different declarations in both arrays? > create new rule
-                if (r1DeclCount === r2DeclMatches) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     static isSameRuleType(rule1, rule2) {
         return rule1.type === rule2.type;
     }
@@ -78,7 +42,8 @@ class Rule {
     /**
      * Returns true if rule is of type "media"
      *
-     * @param rule
+     * @static
+     * @param {Object} rule
      * @returns {boolean}
      */
     static isMediaRule(rule) {
@@ -90,6 +55,7 @@ class Rule {
      * Also checks valid differences between media selectors that mean the same.
      * "all and " is not needed for the same result. Therefor we need to check the rules more gracefully
      *
+     * @static
      * @param selector_1
      * @param selector_2
      * @returns {boolean}

@@ -1,0 +1,6 @@
+./test
+./tmp
+.gitignore
+.idea
+jest.config.js
+_config.yml

@@ -113,8 +113,9 @@ class Crittr {
     }
 
     /**
+     *  Validates parts of the class options to check if they fit the requirements
      *
-     * @returns {Array}
+     * @returns {Array} errors  Array containing errors for options not matching requirements
      */
     validateOptions() {
         const errors = [];
@@ -133,6 +134,11 @@ class Crittr {
         return errors;
     }
 
+    /**
+     * This is our main execution point of the crittr class.
+     *
+     * @returns {Promise<any>}
+     */
     run() {
         return new Promise(async (resolve, reject) => {
             debug("run - Starting run ...");
@@ -185,8 +191,9 @@ class Crittr {
     }
 
     /**
+     * Returns the browser object of the underlying headless browser
      *
-     * @returns {Promise}
+     * @returns {Promise<any>}
      */
     getBrowser() {
         return new Promise(async (resolve, reject) => {
@@ -218,8 +225,9 @@ class Crittr {
     }
 
     /**
+     * Tries to gracefully closes a page obj to ensure the uninterrupted progress of extraction
      *
-     * @param page
+     * @param page {!Promise<!Puppeteer.Page>}
      * @param errors {Array<Error>}
      * @returns {Promise<any>}
      */
@@ -239,6 +247,11 @@ class Crittr {
         });
     }
 
+    /**
+     * Outputs the errors in a readable way to the stdout/stderr
+     *
+     * @param errors
+     */
     printErrors(errors) {
         if (errors) {
             log.warn(chalk.red("Errors occured during processing. Please have a look and report them if necessary"));
@@ -253,14 +266,19 @@ class Crittr {
     }
 
     /**
+     * Returns a page of the underlying browser engine
      *
-     *
-     * @returns {Promise<Page>}
+     * @returns {!Promise<!Puppeteer.Page> | *}
      */
     getPage() {
         return this._browser.newPage();
     }
 
+    /**
+     * Tries to get the contents of the given css file or in case of css string returns the string
+     *
+     * @returns {Promise<any>}
+     */
     getCssContent() {
         return new Promise(async (resolve, reject) => {
             if (typeof this.options.css === "string") {
@@ -285,6 +303,12 @@ class Crittr {
         });
     }
 
+    /**
+     *
+     * Starts an url evaluation with all operations to extract the critical css
+     *
+     * @returns {Promise<String>}
+     */
     getCriticalCssFromUrls() {
         return new Promise(async (resolve, reject) => {
             let errors            = [];
@@ -342,11 +366,9 @@ class Crittr {
                         }
                     }
 
-                    // TODO: Filter AST by keepSelectors
                     // remember to use wildcards. Greedy seems to be the perfect fit
                     // Just *selector* matches all selector that have at least selector in their string
                     // *sel* needs only sel and so on
-
                     const finalCss = this._cssTransformator.getCssFromAst(finalAst);
                     resolve([finalCss.code, errors]);
                 })

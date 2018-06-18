@@ -2,23 +2,12 @@
   "name": "crittr",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "chalk": "^2.4.1",
-    "css": "^2.2.3",
-    "debug": "^3.1.0",
-    "deepmerge": "^2.1.1",
-    "fs-extra": "^6.0.1",
-    "jest": "^23.1.0",
-    "lodash": "^4.17.10",
-    "puppeteer": "^1.5.0",
-    "run-queue": "^1.0.3",
-    "signale": "^1.2.0"
+  "author": "Philipp Winterle",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/hummal/crittr/issues"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "jest"
-  },
+  "homepage": "https://hummal.github.io/crittr/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hummal/crittr.git"
@@ -33,10 +22,34 @@
     "performance",
     "penthouse"
   ],
-  "author": "Philipp Winterle",
-  "license": "GPL-3.0",
-  "bugs": {
-    "url": "https://github.com/hummal/crittr/issues"
+  "engines": {
+    "node": ">=7.6"
   },
-  "homepage": "https://hummal.github.io/crittr/"
+  "main": "index.js",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "css": "^2.2.3",
+    "debug": "^3.1.0",
+    "deepmerge": "^2.1.1",
+    "fs-extra": "^6.0.1",
+    "lodash": "^4.17.10",
+    "puppeteer": "^1.5.0",
+    "run-queue": "^1.0.3",
+    "signale": "^1.2.0"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "gulp-clean": "^0.4.0",
+    "gulp-uglify-es": "^1.0.4",
+    "jest": "^23.1.0"
+  },
+  "scripts": {
+    "test": "jest",
+    "prepublish": "gulp"
+  },
+  "files": [
+    "docs",
+    "lib",
+    "examples"
+  ]
 }
