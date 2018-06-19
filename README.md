@@ -8,6 +8,7 @@
 * :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
 * When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
 * Ongoing maintenance because of being used in enterprise environment
+* Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
 
 ## Performance
 To determine the performance compared to the competitors a benchmark test was created. To achieve the results the benchmark uses a set of 20 urls for one css file. This is repeated for every library. Due to the fact that crittr was build to handle multiple urls it has an obvious advantage. Nevertheless the other libraries like penthouse or critical (uses penthouse) are also fast in single processing. But I would say this will not be a common use case anymore. :no_good:
