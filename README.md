@@ -1,4 +1,14 @@
 # crittr
+
+
+![GitHub release](https://img.shields.io/github/release/hummal/crittr.svg?style=flat-square)
+![npm](https://img.shields.io/npm/dt/crittr.svg?style=flat-square&label=NPM+Downloads) 
+![Github Releases](https://img.shields.io/github/downloads/hummal/crittr/total.svg?style=flat-square&label=Github+Downloads)
+
+[![NPM](https://nodei.co/npm/crittr.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/crittr/)
+
+
+
 > High performance critical css extraction library with a multiple url support. 
 > crittr enables you to extract the critical path stylesheet rules of a single or multiple urls with lightning speed. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this faster than any other library! :muscle:
 
