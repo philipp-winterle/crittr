@@ -84,7 +84,8 @@ describe('Basis Test', () => {
         const mustMissSelectors = {
             standard:  [
                 ".forceExclude",
-                ".no-atf-css-default"
+                ".no-atf-css-default",
+                ":root .not-existing-selector"
             ],
             media1024: [
                 ".forceExclude",

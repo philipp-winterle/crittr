@@ -8,7 +8,7 @@
  * @returns {*[]}
  */
 module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
         // PRE CONFIG VARS
         const usedSelectorTypes = [
             "media",
@@ -24,12 +24,17 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
             "visited"
         ];
 
-        const PSEUDO_DEFAULT_REGEX = new RegExp(pseudoSelectors.map( s => ":?:" + s).reduce( (acc, cur) => acc + "|" + cur), "g");
-        const PSEUDO_BROWSER_REGEX = new RegExp(/:?:-[a-z-]*/g);
+        const pseudoExcludes = [
+            "root"
+        ];
+
+        const PSEUDO_DEFAULT_REGEX  = new RegExp(pseudoSelectors.map(s => ":?:" + s).reduce((acc, cur) => acc + "|" + cur), "g");
+        const PSEUDO_EXCLUDED_REGEX = new RegExp(pseudoExcludes.map(s => ":?:" + s).reduce((acc, cur) => acc + "|" + cur), "g");
+        const PSEUDO_BROWSER_REGEX  = new RegExp(/:?:-[a-z-]*/g);
 
         // ADJUSTMENTS
         keepSelectors = keepSelectors || [];
-        loadTimeout = loadTimeout || 2000;
+        loadTimeout   = loadTimeout || 2000;
 
         // innerHeight of window to determine if in viewport
         const height = window.innerHeight;
@@ -50,7 +55,6 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
             })
         };
         stopPageLoadAfterTimeout(Date.now(), loadTimeout);
-
 
         const isSelectorCritical = (selector) => {
             if (isSelectorForced(selector)) return true;
@@ -87,8 +91,13 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
             if (selector.indexOf(":" > -1)) {
                 selector = selector.replace(PSEUDO_DEFAULT_REGEX, "");
             }
+            // Remove browser pseudo selectors
             if (selector.indexOf(":" > -1)) {
                 selector = selector.replace(PSEUDO_BROWSER_REGEX, "");
+            }
+            // Remove excluded pseudo selectors
+            if (selector.indexOf(":" > -1)) {
+                selector = selector.replace(PSEUDO_EXCLUDED_REGEX, "");
             }
 
             return selector;
@@ -96,11 +105,12 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
 
         /**
          * If selector is purely pseudo (f.e. ::-moz-placeholder) -> KEEP IT.
+         * But don't keep excludedPseudos by default
          *
          * @param selector
          * @returns {boolean}
          */
-        const isPurePseudo = selector => selector.startsWith(":");
+        const isPurePseudo = selector => selector.startsWith(":") && selector.match(PSEUDO_EXCLUDED_REGEX) === null;
 
         const isSelectorForced = selector => {
             return keepSelectors.includes(selector);

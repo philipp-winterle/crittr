@@ -19,7 +19,7 @@ module.exports = () => {
     return new Promise( (resolve, reject) => {
         staticServer.listen(8000, async () => {
             try {
-                const extractedCss = await Critter({
+                const [criticalCss, restCss]= await Critter({
                     urls:            testData.urls,
                     css:             testData.css,
                     device:          {
@@ -33,7 +33,7 @@ module.exports = () => {
                         ".forceExclude"
                     ]
                 });
-                fs.writeFileSync(path.join(rootDir, "./test/test_result.css"), extractedCss, "utf-8");
+                fs.writeFileSync(path.join(rootDir, "./test/test_result.css"), criticalCss, "utf-8");
             } catch (err) {
                 reject(err)
             }

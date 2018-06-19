@@ -16,11 +16,13 @@
     "critical",
     "css",
     "above the fold",
+    "atf",
     "stylesheets",
     "extraction",
     "critical css",
     "performance",
-    "penthouse"
+    "penthouse",
+    "extract"
   ],
   "engines": {
     "node": ">=7.6"
@@ -35,7 +37,7 @@
     "lodash": "^4.17.10",
     "puppeteer": "^1.5.0",
     "run-queue": "^1.0.3",
-    "signale": "^1.2.0"
+    "signale": "^1.2.1"
   },
   "devDependencies": {
     "gulp": "^4.0.0",

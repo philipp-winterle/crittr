@@ -13,7 +13,7 @@ const devices         = require('puppeteer/DeviceDescriptors');
 const DEFAULTS        = require('../Constants');
 
 const CssTransformator          = require('./CssTransformator.class');
-const extractCriticalCss_script = require('../browser/extract_critical_with_css');
+const extractCriticalCss_script = require('../evaluation/extract_critical_with_css');
 
 /**
  * CRITTR Class
@@ -137,13 +137,14 @@ class Crittr {
     /**
      * This is our main execution point of the crittr class.
      *
-     * @returns {Promise<any>}
+     * @returns {Promise<[<Object>, <Object>]>}
      */
     run() {
         return new Promise(async (resolve, reject) => {
             debug("run - Starting run ...");
 
             let criticalCss = "";
+            let restCss = "";
             let errors      = [];
 
             try {
@@ -166,7 +167,7 @@ class Crittr {
 
             try {
                 debug("run - Starting critical css extraction ...");
-                [criticalCss, errors] = await this.getCriticalCssFromUrls();
+                ([criticalCss, restCss, errors] = await this.getCriticalCssFromUrls());
                 if (errors.length > 0) {
                     log.warn("Some of the urls had errors. Please review them below!");
                     this.printErrors(errors);
@@ -186,7 +187,7 @@ class Crittr {
             }
 
             debug("run - Extraction ended!");
-            resolve(criticalCss);
+            resolve([criticalCss, restCss]);
         });
     }
 
@@ -307,13 +308,14 @@ class Crittr {
      *
      * Starts an url evaluation with all operations to extract the critical css
      *
-     * @returns {Promise<String>}
+     * @returns {Promise<[<Object>, <Object>, <Array>]>}
      */
     getCriticalCssFromUrls() {
         return new Promise(async (resolve, reject) => {
             let errors            = [];
             const urls            = this.options.urls;
             const criticalAstSets = new Set();
+            const restAstSets     = new Set();
             const sourceCssAst    = this._cssTransformator.getAst(this._cssContent);
 
             const queue = new Queue({
@@ -322,11 +324,12 @@ class Crittr {
 
             // Add to queue
 
-            const queueEvaluateFn = async (url, sourceCssAst, criticalAstSets) => {
+            const queueEvaluateFn = async (url, sourceCssAst, criticalAstSets, restAstSets) => {
                 try {
                     debug("getCriticalCssFromUrls - Try to get critical ast from " + url);
-                    const criticalAst = await this.evaluateUrl(url, sourceCssAst);
+                    const [criticalAst, restAst] = await this.evaluateUrl(url, sourceCssAst);
                     criticalAstSets.add(criticalAst);
+                    restAstSets.add(restAst);
                     debug("getCriticalCssFromUrls - Successfully extracted critical ast!");
                 } catch (err) {
                     debug("getCriticalCssFromUrls - ERROR getting critical ast from promise");
@@ -337,7 +340,7 @@ class Crittr {
             };
 
             for (let url of urls) {
-                queue.add(1, queueEvaluateFn, [url, sourceCssAst, criticalAstSets]);
+                queue.add(1, queueEvaluateFn, [url, sourceCssAst, criticalAstSets, restAstSets]);
             }
 
             queue
@@ -355,6 +358,13 @@ class Crittr {
                         }
                     };
 
+                    let finalRestAst = {
+                        "type":       "stylesheet",
+                        "stylesheet": {
+                            "rules": []
+                        }
+                    };
+
                     for (let astMap of criticalAstSets) {
                         try {
                             // Filter selectors which have to be force removed
@@ -366,11 +376,21 @@ class Crittr {
                         }
                     }
 
+                    for (let astMap of restAstSets) {
+                        try {
+                            // Merge all extracted ASTs into a final one
+                            finalRestAst = await this._cssTransformator.merge(finalRestAst, astMap);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    }
+
                     // remember to use wildcards. Greedy seems to be the perfect fit
                     // Just *selector* matches all selector that have at least selector in their string
                     // *sel* needs only sel and so on
                     const finalCss = this._cssTransformator.getCssFromAst(finalAst);
-                    resolve([finalCss.code, errors]);
+                    const finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst);
+                    resolve([finalCss.code, finalRestCss.code, errors]);
                 })
                 .catch(err => {
                     reject(err);
@@ -391,7 +411,8 @@ class Crittr {
             let hasError             = false;
             let page                 = null;
             let criticalSelectorsMap = new Map();
-            let criticalAst          = null;
+            let criticalAstObj       = null;
+            let restAstObj           = null;
 
             // TODO: handle goto errors with retry
 
@@ -527,7 +548,9 @@ class Crittr {
                 }
 
                 debug("evaluateUrl - cleaning up AST with criticalSelectorMap");
-                criticalAst = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
+                const [criticalAst, restAst] = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
+                criticalAstObj               = criticalAst;
+                restAstObj                   = restAst;
                 debug("evaluateUrl - cleaning up AST with criticalSelectorMap - END");
             }
 
@@ -551,7 +574,7 @@ class Crittr {
                 reject(hasError);
             }
 
-            resolve(criticalAst);
+            resolve([criticalAstObj, restAstObj]);
         });
     }
 

@@ -35,7 +35,22 @@ npm i crittr
 ```
 ### Usage
 #### Modul usage
-To use crittr as a module just require it and choose your [options](#options)
+To use crittr as a module just require it and choose your [options](#options).
+
+The crittr module has the expects an object as input parameter and returns an array with 2 css strings. The first one is the criticalCss string and the second one is the remaining css without the critical selectors.
+
+```javascript
+// async/await
+(async () => {
+    const [criticalCss, restCss] = await crittr(options);
+})();
+
+// Promise
+crittr(options).then( (criticalCss, restCss) => {
+    // handle css
+});
+
+```
 
 ##### Basic
 ```javascript
@@ -54,8 +69,8 @@ Crittr({
         width:  1920,
         height: 1080
     }
-}).then(extractedCss => {
-    console.log(extractedCss);  
+}).then(([criticalCss, restCss]) => {
+    console.log(criticalCss);  
 }).catch(err => {
     console.error(err);
 });
@@ -69,8 +84,8 @@ Crittr({
         "https://github.com/"
     ],
     css: "./test/data/test.css"
-}).then(extractedCss => {
-        console.log(extractedCss);  
+}).then(([criticalCss, restCss]) => {
+        console.log(criticalCss);  
 });
 ```
  
@@ -79,7 +94,7 @@ Due to the fact, that crittr is returning a **Promise<String>** you can also use
 ( async () => {
     const Crittr = require('crittr');
     try {
-        const extractedCss = await Crittr({
+        const [criticalCss, restCss] = await Crittr({
                 urls:   [
                     "https://github.com/"
                 ],
@@ -106,8 +121,12 @@ const urls = [
 Crittr({
     urls:   urls,
     css: "./example.com/css/main.css"
-}).then(extractedCss => {
-        console.log(extractedCss);  
+}).then(([criticalCss, restCss]) => {
+    // criticalCss contains all the above the fold css
+    // restCss is the rest remaining after excluding the criticalCss.
+    // You can start including it directly as a defered css without 
+    // any need to calculate it on your own
+        console.log(criticalCss);  
 });
 ``` 
 
@@ -182,9 +201,13 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 ## Known Bugs :shit:
 None yet
 
+## Troubleshooting
+
+### WSL / Windows Linux Subsystem Support
+Some unkown reasons prevent puppeteer to run properly in a WSL environment. If you have any errors please try to use your default OS command shell or equivalent. If the error still exists don't hesitate to create an issue ticket.
+
 ## Inspiration
 :star: [puppeteer](https://github.com/GoogleChrome/puppeteer)
 :star: [penthouse](https://github.com/pocketjoso/penthouse)
 :star: [critical](https://github.com/addyosmani/critical)
 :star: [criticalCSS](https://github.com/filamentgroup/criticalCSS)
-

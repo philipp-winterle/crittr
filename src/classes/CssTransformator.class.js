@@ -158,15 +158,21 @@ class CssTransformator {
      */
     filterByMap(ast, selectorMap) {
         let _ast            = JSON.parse(JSON.stringify(ast));
+        let _astRest        = JSON.parse(JSON.stringify(ast));
         let _astRoot        = null;
+        let _astRootRest    = null;
         let media           = "";
+        let mediaRest       = "";
         let removeableRules = [];
         // Root knot or media query
         if (_ast.type === "stylesheet") {
-            _astRoot = _ast.stylesheet;
+            _astRoot     = _ast.stylesheet;
+            _astRootRest = _astRest.stylesheet;
         } else if (_ast.rules && _ast.type === "media") {
-            _astRoot = _ast;
-            media    = _ast.media || "";
+            _astRoot     = _ast;
+            _astRootRest = _astRest;
+            media        = _ast.media || "";
+            mediaRest    = _astRest.media || "";
         } else {
             debug("Missing ast rules!!!");
         }
@@ -187,8 +193,10 @@ class CssTransformator {
             if (rule.type === "media") {
                 const ruleIndex           = _astRoot.rules.indexOf(rule);
                 const originalRule        = _astRoot.rules[ruleIndex];
-                const newRule             = this.filterByMap(rule, selectorMap);
+                const [newRule, restRule] = this.filterByMap(rule, selectorMap);
+
                 _astRoot.rules[ruleIndex] = newRule;
+                _astRootRest.rules[ruleIndex] = restRule;
                 // If media query rule is empty now -> remove
                 if (newRule && newRule.rules && newRule.rules.length === 0) {
                     removeableRules.push(newRule);
@@ -208,12 +216,20 @@ class CssTransformator {
         }
 
         // REMOVE rules from AST Rules
-        _astRoot.rules = _astRoot.rules.filter(rule => {
+        const newRules = _astRoot.rules.filter(rule => {
             return !removeableRules.includes(rule);
         });
 
+        // TODO: if switched to partial multiselectors this won't work as expected
+        const restRules = _astRoot.rules.filter(rule => {
+            return !newRules.includes(rule);
+        });
+
+        _astRoot.rules = newRules;
+        _astRest.rules = restRules;
+
         // Return the new AST Object
-        return _ast;
+        return [_ast,_astRest];
     }
 
     /**
