@@ -96,6 +96,13 @@ h1, h2, h3, h4, h5, h6 {
     content: "pseudo ::before";
 }
 
+.multi-selector,
+.not-exists .remaining-css,
+.multi-selector-1 {
+    content: "should only have multi-selector and multi-selector-1 in criticalcss";
+}
+
+
 @media all and (min-width: 1024px) {
     .standard-selector {
         color: black;
@@ -132,6 +139,12 @@ h1, h2, h3, h4, h5, h6 {
 
     .forceExclude {
         color: royalblue;
+    }
+
+    .multi-selector,
+    .not-exists-mq-1024 .remaining-css,
+    .multi-selector-1 {
+        content: "should only have multi-selector and multi-selector-1 in criticalcss";
     }
 }
 

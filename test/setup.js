@@ -34,6 +34,7 @@ module.exports = () => {
                     ]
                 });
                 fs.writeFileSync(path.join(rootDir, "./test/test_result.css"), criticalCss, "utf-8");
+                fs.writeFileSync(path.join(rootDir, "./test/test_result_remaining.css"), restCss, "utf-8");
             } catch (err) {
                 reject(err)
             }

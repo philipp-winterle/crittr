@@ -12,7 +12,9 @@ const Rule         = require(path.join(rootDir, "lib/classes/Rule.class"));
 describe('Basis Test', () => {
     describe('Check Results', () => {
         const resultCSS      = fs.readFileSync(path.join(rootDir, "test", "test_result.css"), "utf8");
+        const remainingCSS      = fs.readFileSync(path.join(rootDir, "test", "test_result_remaining.css"), "utf8");
         const resultAstRules = (css.parse(resultCSS)).stylesheet.rules;
+        const remainingAstRules = (css.parse(remainingCSS)).stylesheet.rules;
 
         const criticalSelectorRules = new Map();
 
@@ -61,7 +63,7 @@ describe('Basis Test', () => {
                 ".group-selector .deep1 .deep2",
                 ".multi-selector,.multi-selector-1,.multi-selector-2",
                 ".forceInclude",
-                "h1,h2,h3,h4,h5,h6",
+                "h1",
                 ".vendor_prefix",
                 ".pseudo-selector:after",
                 ".pseudo-selector::before"
@@ -85,7 +87,8 @@ describe('Basis Test', () => {
             standard:  [
                 ".forceExclude",
                 ".no-atf-css-default",
-                ":root .not-existing-selector"
+                ":root .not-existing-selector",
+                "h2,h3,h4,h5,h6"
             ],
             media1024: [
                 ".forceExclude",
@@ -218,7 +221,7 @@ describe('Basis Test', () => {
             expect(duplicateRules).toHaveLength(0);
         });
 
-        it("There should not exist any empty selectors", () => {
+        test("There should not exist any empty selectors", () => {
             const emptyRules = [];
             for (const rule of resultAstRules) {
                 if (Rule.isMediaRule(rule)) {
@@ -233,6 +236,39 @@ describe('Basis Test', () => {
             }
 
             expect(emptyRules).toHaveLength(0);
+        });
+
+        test("There should not exist any non critical partial selectors in critical css", () => {
+            let exists = resultAstRules.some( rule => {
+                return rule.selectors && rule.selectors.includes(".not-exists .remaining-css");
+            });
+
+            expect(exists).not.toBeTruthy();
+        });
+
+        test("There should not exist any non critical partial mq rule selectors in remaining css", () => {
+            let exists = resultAstRules.some( rule => {
+                if (rule.type === "media") {
+                    return rule.rules.some( rule => rule.selectors && rule.selectors.includes(".not-exists-mq-1024 .remaining-css"))
+                }
+            });
+
+            expect(exists).not.toBeTruthy();
+        });
+
+        test("There should exist any non critical partial selectors in remaining css", () => {
+            let exists = remainingAstRules.some( rule => rule.selectors && rule.selectors.includes(".not-exists .remaining-css"));
+            expect(exists).toBeTruthy();
+        });
+
+        test("There should exist any non critical partial mq rule selectors in remaining css", () => {
+            let exists = remainingAstRules.some( rule => {
+                if (rule.type === "media") {
+                    return rule.rules.some( rule => rule.selectors && rule.selectors.includes(".not-exists-mq-1024 .remaining-css"))
+                }
+            });
+
+            expect(exists).toBeTruthy();
         });
 
     });
