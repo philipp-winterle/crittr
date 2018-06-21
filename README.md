@@ -205,7 +205,8 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 - [ ] :star: cookie includes
 - [ ] :star: wildcards
 - [ ] :grey_question: positioning of critical css rules 
-- [ ] :grey_question: multi selector partial matches ? needed?
+- [x] :fire: return of the remaining css aswell
+- [x] :grey_question: multi selector partial matches
 - [ ] :broken_heart: page crash - recover url (page.url()) and retry
 
 ## Known Bugs :shit:
