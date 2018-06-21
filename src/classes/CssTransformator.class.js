@@ -211,8 +211,6 @@ class CssTransformator {
                 if (rule.selectors.length === 0) {
                     removeableRules.push(rule);
                 }
-            } else {
-                debug("Unprocessed rule type! >> " + rule.type);
             }
 
             return rule;
