@@ -5,7 +5,7 @@
  * @param sourceAst
  * @param renderTimeout
  * @param keepSelectors
- * @returns {*[]}
+ * @returns {Promise<Map<Object>>}
  */
 module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
     return new Promise((resolve, reject) => {
@@ -129,36 +129,25 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
             return false;
         };
 
-        const processSelector = (selector, media) => {
-            media     = media || "";
-            const key = media + selector;
-
-            if (isPurePseudo(selector) || isSelectorCritical(selector)) {
-                if (!criticalSelectors.has(key)) {
-                    criticalSelectors.set(key, {
-                        selector: selector,
-                        media:    media
-                    });
-                }
-            }
-        };
-
         /**
          * Mutating criticalSelectors Map
          * @param ast
          */
         const gatherCriticalSelectors = (ast) => {
-            let rules = [];
-            let media = null;
+            let _astRoot = {};
+            let media    = null;
+
             // Root knot or media query
             if (ast.stylesheet) {
-                rules = ast.stylesheet.rules || [];
+                _astRoot = ast.stylesheet;
             } else if (ast.rules && ast.type === "media") {
-                rules = ast.rules || [];
-                media = ast.media;
+                _astRoot = ast;
+                media    = ast.media;
             } else {
                 console.warn("Missing ast rules!!!", ast.type, ast.stylesheet);
             }
+
+            const rules = _astRoot.rules;
 
             for (let rule of rules) {
                 // Part of useful rule types
@@ -168,9 +157,31 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
                         // Recursive process of media rule
                         gatherCriticalSelectors(rule);
                     } else { // IS ALWAYS RULE
+
                         const selectors = rule.selectors || [];
+                        media     = media || "";
+
+                        // Key for identify
+                        const ruleKey = media + selectors.join();
+
                         for (let selector of selectors) {
-                            processSelector(selector, media);
+
+                            // Check if selector is pure pseudo or a critical match
+                            // NOTE: Check if we are in trouble with doubled selectors with different content
+                            if (isPurePseudo(selector) || isSelectorCritical(selector)) {
+                                if (criticalSelectors.has(ruleKey)) {
+                                    const critSel = criticalSelectors.get(ruleKey);
+                                    if (!critSel.selectors.includes(selector)) {
+                                        critSel.selectors.push(selector);
+                                    }
+                                } else {
+                                    criticalSelectors.set(ruleKey, {
+                                        selectors: [selector],
+                                        media:     media, // Needed?
+                                        rule:      rule // Needed? maybe for doubled rules
+                                    });
+                                }
+                            }
                         }
                     }
                 } else {
@@ -182,8 +193,8 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
         gatherCriticalSelectors(sourceAst);
 
         return resolve([...criticalSelectors]);
+
+    }).catch(error => {
+        console.error(error);
     })
-        .catch(error => {
-            console.error(error);
-        })
 };

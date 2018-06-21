@@ -1,4 +1,5 @@
-const _               = require('lodash');
+const _   = require('lodash');
+const log = require('signale');
 
 /**
  * Rule Class with static functions to handle rule comparision and more
@@ -21,7 +22,7 @@ class Rule {
         excludedProperties = excludedProperties || [];
 
         const hasSameProperties = _.isEqualWith(rule1, rule2, (value1, value2, propKey) => {
-            if(excludedProperties.includes(propKey)) return true;
+            if (excludedProperties.includes(propKey)) return true;
         });
 
         return hasSameProperties;
@@ -65,6 +66,16 @@ class Rule {
             selector_1 === selector_2.replace("all and ", "") ||
             selector_2 === selector_1.replace("all and ", "") ||
             selector_1.replace("all and ", "") === selector_2.replace("all and ", "")
+    }
+
+    static generateRuleKey(rule, media) {
+        media = media || "";
+        if (rule.selectors) {
+            return media + rule.selectors;
+        } else {
+            log.error("Can not generate rule key of rule without selectors! Maybe this is a media query?", rule);
+        }
+
     }
 
 }

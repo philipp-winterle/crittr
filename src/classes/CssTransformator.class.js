@@ -157,79 +157,119 @@ class CssTransformator {
      * @returns {Object} AST
      */
     filterByMap(ast, selectorMap) {
-        let _ast            = JSON.parse(JSON.stringify(ast));
-        let _astRest        = JSON.parse(JSON.stringify(ast));
-        let _astRoot        = null;
-        let _astRootRest    = null;
-        let media           = "";
-        let mediaRest       = "";
-        let removeableRules = [];
-        // Root knot or media query
-        if (_ast.type === "stylesheet") {
-            _astRoot     = _ast.stylesheet;
-            _astRootRest = _astRest.stylesheet;
-        } else if (_ast.rules && _ast.type === "media") {
-            _astRoot     = _ast;
-            _astRootRest = _astRest;
-            media        = _ast.media || "";
-            mediaRest    = _astRest.media || "";
-        } else {
-            debug("Missing ast rules!!!");
-        }
+        let _ast                   = JSON.parse(JSON.stringify(ast));
+        let _astRest               = JSON.parse(JSON.stringify(ast));
+        const _astRoot             = _ast.stylesheet;
+        const _astRestRoot         = _astRest.stylesheet;
+        let removeableRules        = [];
+        const criticalSelectorsMap = new Map();
 
-        // checks if critical selec
-        const hasCriticalSelectors = (selectors, media, selectorMap) => {
-            return selectors.some(selector => {
-                // TODO: filter subselectors
-                // Selector is in criticalSelectorsMap
-                return selectorMap.has(media + selector);
-            });
+        const getCriticalRuleSelectors = (rule, media, selectorMap) => {
+            media         = media || "";
+            const ruleKey = Rule.generateRuleKey(rule, media);
+
+            if (selectorMap.has(ruleKey)) {
+                const critObj = selectorMap.get(ruleKey);
+                return rule.selectors.filter(selector => critObj.selectors.includes(selector));
+            }
+
+            return [];
         };
 
-        // Iterate over all ast rules and only keep type "rule" and "media"
-        for (let rule of _astRoot.rules) {
+        // Filter rule types we don't want
+        let newRules = _astRoot.rules.filter(rule => {
+            return !this._TYPES_TO_REMOVE.includes(rule.type);
+        });
 
-            // If rule is media going recursive with their rules
+        // HANDLE CRITICAL CSS
+        // Clear out the non critical selectors
+        newRules = newRules.map((rule, index, rules) => {
+            // Media Rule
             if (rule.type === "media") {
-                const ruleIndex           = _astRoot.rules.indexOf(rule);
-                const originalRule        = _astRoot.rules[ruleIndex];
-                const [newRule, restRule] = this.filterByMap(rule, selectorMap);
+                if (rule.rules) {
+                    rule.rules = rule.rules.map(internalRule => {
+                        const internalRuleKey  = Rule.generateRuleKey(internalRule, rule.media);
+                        // Get the critical selectors of this media internal rule
+                        internalRule.selectors = getCriticalRuleSelectors(internalRule, rule.media, selectorMap);
+                        // Create Map entry for exclude of remaining ast
+                        criticalSelectorsMap.set(internalRuleKey, internalRule.selectors);
+                        return internalRule;
+                    }).filter(internalRule => internalRule.selectors !== undefined && internalRule.selectors.length > 0);
 
-                _astRoot.rules[ruleIndex] = newRule;
-                _astRootRest.rules[ruleIndex] = restRule;
-                // If media query rule is empty now -> remove
-                if (newRule && newRule.rules && newRule.rules.length === 0) {
-                    removeableRules.push(newRule);
+                    // If media query is empty remove
+                    if (rule.rules.length === 0) {
+                        removeableRules.push(rule);
+                    }
                 }
-            } else if (rule.type === "rule") {
-                // If rule is rule -> check if selectors are in critical map
-                // If not - put them into the array to remove them later on
-                if (!hasCriticalSelectors(rule.selectors, media, selectorMap)) {
+            } else if (rule.type === "rule") { // Standard Rule
+                const ruleKey  = Rule.generateRuleKey(rule);
+                // Get the critical selectors of this rule
+                rule.selectors = getCriticalRuleSelectors(rule, "", selectorMap);
+                // Create Map entry for exclude of remaining ast
+                criticalSelectorsMap.set(ruleKey, rule.selectors);
+                // If there are no critical selectors mark this rule as removeable
+                if (rule.selectors.length === 0) {
                     removeableRules.push(rule);
                 }
             } else {
-                if (!this._TYPES_TO_KEEP.includes(rule.type)) {
-                    //debug("Dropping unusable rule type => " + rule.type);
-                    removeableRules.push(rule);
-                }
+                debug("Unprocessed rule type! >> " + rule.type);
             }
-        }
 
-        // REMOVE rules from AST Rules
-        const newRules = _astRoot.rules.filter(rule => {
+            return rule;
+        });
+
+        // Process removeables
+        newRules = newRules.filter(rule => {
             return !removeableRules.includes(rule);
         });
 
-        // TODO: if switched to partial multiselectors this won't work as expected
-        const restRules = _astRoot.rules.filter(rule => {
-            return !newRules.includes(rule);
+        // HANDLE REST CSS
+        removeableRules = [];
+        // Clear out the non critical selectors
+        let restRules   = _astRestRoot.rules.map(rule => {
+            const media = rule.type === "media" ? rule.media : "";
+
+            if (rule.type === "media") {
+                if (rule.rules) {
+                    rule.rules = rule.rules.map(internalRule => {
+                        const ruleKey = Rule.generateRuleKey(internalRule, media);
+                        if (criticalSelectorsMap.has(ruleKey)) {
+                            const criticalSelectorsOfRule = criticalSelectorsMap.get(ruleKey);
+                            internalRule.selectors        = internalRule.selectors.filter(selector => !criticalSelectorsOfRule.includes(selector));
+                        }
+                        return internalRule;
+                    }).filter(internalRule => internalRule.selectors !== undefined && internalRule.selectors.length > 0);
+
+                    // If media query is empty remove
+                    if (rule.rules.length === 0) {
+                        removeableRules.push(rule);
+                    }
+                }
+            } else if (rule.type === "rule") {
+                const ruleKey = Rule.generateRuleKey(rule, media);
+                if (criticalSelectorsMap.has(ruleKey)) {
+                    const criticalSelectorsOfRule = criticalSelectorsMap.get(ruleKey);
+                    rule.selectors                = rule.selectors.filter(selector => !criticalSelectorsOfRule.includes(selector));
+                }
+
+                if (rule.selectors.length === 0) {
+                    removeableRules.push(rule);
+                }
+            }
+
+            return rule;
         });
 
-        _astRoot.rules = newRules;
-        _astRest.rules = restRules;
+        // Process removeables
+        restRules = restRules.filter(rule => {
+            return !(removeableRules.includes(rule) || this._TYPES_TO_KEEP.includes(rule.type));
+        });
+
+        _astRoot.rules     = newRules;
+        _astRestRoot.rules = restRules;
 
         // Return the new AST Object
-        return [_ast,_astRest];
+        return [_ast, _astRest];
     }
 
     /**

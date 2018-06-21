@@ -42,7 +42,7 @@ class Crittr {
      * @param {Array}   [options.blockRequests=[...]            - URLs of websites mostly used to be part of tracking or
      *                                                          analytics. Not needed for critical css so they are aborted
      *
-     * @returns Promise<String>
+     * @returns Promise<[<string>,<string>]>
      */
     constructor(options) {
         this.options = {
@@ -137,7 +137,7 @@ class Crittr {
     /**
      * This is our main execution point of the crittr class.
      *
-     * @returns {Promise<[<Object>, <Object>]>}
+     * @returns {Promise<[<string>, <string>]>}
      */
     run() {
         return new Promise(async (resolve, reject) => {
@@ -442,10 +442,18 @@ class Crittr {
                 debug("evaluateUrl - Open new Page-Tab ...");
                 page = await getPage();
                 if (this.options.printBrowserConsole === true) {
-                    page.on('console', msg => {
+                    page.on("console", msg => {
                         const args = msg.args();
                         for (let i = 0; i < args.length; ++i)
                             log.log(`${args[i]}`);
+                    });
+
+                    page.on("pageerror", err => {
+                        log.log("Page error: " + err.toString());
+                    });
+
+                    page.on("error", err => {
+                        log.log("Error: " + err.toString());
                     });
                 }
                 debug("evaluateUrl - Page-Tab opened!");
@@ -548,6 +556,8 @@ class Crittr {
                 }
 
                 debug("evaluateUrl - cleaning up AST with criticalSelectorMap");
+                // TODO: Check here for multiple selector split
+                // NOTE: HIER WEITER MACHEN!!!
                 const [criticalAst, restAst] = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
                 criticalAstObj               = criticalAst;
                 restAstObj                   = restAst;
