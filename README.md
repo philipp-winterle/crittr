@@ -52,11 +52,11 @@ The crittr module has the expects an object as input parameter and returns an ar
 ```javascript
 // async/await
 (async () => {
-    const [criticalCss, restCss] = await crittr(options);
+    const {critical, rest} = await crittr(options);
 })();
 
 // Promise
-crittr(options).then( (criticalCss, restCss) => {
+crittr(options).then( ({critical, rest}) => {
     // handle css
 });
 
@@ -79,8 +79,8 @@ Crittr({
         width:  1920,
         height: 1080
     }
-}).then(([criticalCss, restCss]) => {
-    console.log(criticalCss);  
+}).then(({critical, rest}) => {
+    console.log(critical);  
 }).catch(err => {
     console.error(err);
 });
@@ -94,8 +94,8 @@ Crittr({
         "https://github.com/"
     ],
     css: "./test/data/test.css"
-}).then(([criticalCss, restCss]) => {
-        console.log(criticalCss);  
+}).then(({critical, rest}) => {
+        console.log(critical);  
 });
 ```
  
@@ -104,7 +104,7 @@ Due to the fact, that crittr is returning a **Promise<String>** you can also use
 ( async () => {
     const Crittr = require('crittr');
     try {
-        const [criticalCss, restCss] = await Crittr({
+        const {critical, rest} = await Crittr({
                 urls:   [
                     "https://github.com/"
                 ],
@@ -131,7 +131,7 @@ const urls = [
 Crittr({
     urls:   urls,
     css: "./example.com/css/main.css"
-}).then(([criticalCss, restCss]) => {
+}).then(({critical, rest}) => {
     // criticalCss contains all the above the fold css
     // restCss is the rest remaining after excluding the criticalCss.
     // You can start including it directly as a defered css without 
@@ -158,6 +158,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 **urls** | Array | An array containing the urls to check the css against. Has to be at least 1 url. |
 | timeout | Number | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000 |
 | pageLoadTimeout | Number | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stopped and the extraction continues. Default: 2000 |
+| outputRemainingCss | Boolean | Optional. If set to false the result obj will not contain any rest css. Only an empty string will be given. Default: true |
 | browser | Object | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for [browser object](#browser-options). |
 | device | Object | Optional. Configuration object of device. E.g.  width, height, ... See documentation for [device object](#device-options). |
 | puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for [puppeteer object](#puppeteer-options). |
@@ -209,7 +210,8 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 - [ ] :grey_question: positioning of critical css rules 
 - [x] :fire: return of the remaining css aswell
 - [x] :grey_question: multi selector partial matches
-- [x] returning of remaining css aswell
+- [x] :tea: returning of remaining css aswell (optional)
+- [x] :clock2: performance boost for large css
 - [ ] :broken_heart: page crash - recover url (page.url()) and retry
 
 ## Known Bugs :shit:
