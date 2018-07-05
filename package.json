@@ -46,7 +46,7 @@
     "gulp": "^4.0.0",
     "gulp-clean": "^0.4.0",
     "gulp-uglify-es": "^1.0.4",
-    "husky": "^0.14.3",
+    "husky": "^1.0.0-rc.12",
     "jest": "^23.1.0"
   },
   "scripts": {

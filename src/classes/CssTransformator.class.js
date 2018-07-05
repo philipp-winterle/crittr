@@ -63,7 +63,6 @@ class CssTransformator {
     }
 
     getCssFromAst(ast) {
-        debug("getCssFromAst - Create css string out of AST");
         return css.stringify(ast, {
             indent:          "  ",
             compress:        false,
@@ -271,111 +270,6 @@ class CssTransformator {
         // Return the new AST Object
         return [_ast, _astRest];
     }
-
-    /**
-     * Merge mergeAst into targetAst.
-     * Keep targetAst properties if duplicate
-     *
-     * @param   {Object}          targetAst
-     * @param   {Object}          mergeAst
-     * @returns {Promise<Object>} AST
-     */
-    merge(targetAst, mergeAst) {
-        return new Promise((resolve, reject) => {
-            debug("merge - Try to merge into targetAst...");
-            if (
-                targetAst.type &&
-                targetAst.type === "stylesheet" &&
-                targetAst.stylesheet &&
-                Array.isArray(targetAst.stylesheet.rules)
-            ) {
-                try {
-                    // Iterate over merging AST
-                    let mergeRules  = mergeAst.stylesheet.rules;
-                    let targetRules = targetAst.stylesheet.rules;
-
-                    for (let mergeRule of mergeRules) {
-                        this.mergeRule(mergeRule, targetRules);
-                    }
-                    // Give back targetAst even though it was mutated
-                    debug("merge - Successfully merged into targetAst!");
-                    resolve(targetAst)
-                } catch (err) {
-                    // Catch errors if occur
-                    debug("merge - general error occured.");
-                    reject(err);
-                }
-            } else {
-                debug("merge - ERROR because of missing properties!");
-                reject(new Error("AST Merge failed due to missing properties"));
-            }
-        });
-    }
-
-    /**
-     * Merges the rule object into the Array targetRules which should be an array of Rule objects
-     *
-     * NOTE: Muates the targetRules Array
-     *
-     * @param {Object} rule
-     * @param {Array}  targetRules
-     */
-    mergeRule(rule, targetRules) {
-        // Handle media queries
-        if (Rule.isMediaRule(rule)) {
-            this.mergeMediaRule(rule, targetRules);
-        } else {
-            // Normal CSS-Rule or other
-            if (targetRules.length > 0) {
-                let isDuplicate = false;
-                for (let targetRule of targetRules) {
-                    // Does rule exists in targetRules?
-                    // If not -> assimilate
-                    if (Rule.isSameRuleType(targetRule, rule) && Rule.isRuleDuplicate(targetRule, rule, ["position"])) {
-                        isDuplicate = true;
-                        break;
-                    }
-                }
-                if (!isDuplicate) {
-                    // TODO: take care of positioning. The rule may need to overwrite something and could be inserted to early / late
-                    targetRules.push(rule);
-                }
-            } else {
-                // Empty targetRules -> create
-                targetRules.push(rule);
-            }
-        }
-    }
-
-    /**
-     * Merges a whole media rule with another. While rule is the main rule and targetArr is merges into that rule
-     *
-     * @param rule
-     * @param targetArr
-     */
-    mergeMediaRule(rule, targetArr) {
-        const selector      = rule.media;
-        const mediaRulesArr = rule.rules;
-        let targetRulesArr  = [];
-        let hasNoMediaRule  = true;
-
-        for (let targetRule of targetArr) {
-            if (Rule.isMediaRule(targetRule) && Rule.isMatchingMediaRuleSelector(selector, targetRule.media)) {
-                targetRulesArr = targetRule.rules;
-                hasNoMediaRule = false;
-                break;
-            }
-        }
-
-        if (hasNoMediaRule) {
-            targetArr.push(rule);
-        } else {
-            for (let mediaRule of mediaRulesArr) {
-                this.mergeRule(mediaRule, targetRulesArr)
-            }
-        }
-    }
-
 }
 
 module.exports = CssTransformator;

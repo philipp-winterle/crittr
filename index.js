@@ -15,14 +15,13 @@ module.exports = (options) => {
     return new Promise(async (resolve, reject) => {
         log.time("Crittr Run");
         const crttr      = new Crittr(options);
-        let extractedCss = "";
-        let restCss      = "";
+        let resultObj  = {critical: null, rest: null};
         try {
-            ([extractedCss, restCss] = await crttr.run());
+            (resultObj = await crttr.run());
         } catch (err) {
             reject(err);
         }
-        resolve([extractedCss, restCss]);
+        resolve(resultObj);
         log.timeEnd("Crittr Run");
     });
 };

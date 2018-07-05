@@ -6,10 +6,8 @@
  */
 
 "use strict";
-const path = require('path');
-const fs   = require('fs-extra');
-
-const chalk        = require('chalk');
+const path         = require('path');
+const fs           = require('fs-extra');
 const Crittr       = require('../index');
 const rootDir      = path.join(__dirname, "..");
 const staticServer = require("../lib/helper/localFileServer")(rootDir);
@@ -45,7 +43,7 @@ staticServer.listen(8000, async () => {
     try {
         console.log("Start Critter Benchmark");
         console.time("Crittr");
-        const extractedCss = await Crittr({
+        const {critical, rest} = await Crittr({
             urls:            urls,
             css:             rootDir + "/test/data/test.css",
             device:          {

@@ -4,21 +4,36 @@ const CONSTANTS = require('../Constants');
 const Rule      = require("./Rule.class");
 const hash      = require('object-hash');
 
+
+// PRIVATE VARS
+const REMOVEABLE_PROPS = [
+    "position"
+];
+
 // PRIVATE FUNCTIONS
+const cleanUnusedProperties = (obj) => {
+    for (let prop in obj) {
+        if (REMOVEABLE_PROPS.includes(prop)) {
+            delete obj[prop];
+        }
+
+        const item = obj[prop];
+        if (Array.isArray(item) || typeof item === "object") {
+            cleanUnusedProperties(item);
+        }
+    }
+};
+
 const handleRule = (ruleObj, map) => {
     // Ignore comments
     if (!Rule.isComment(ruleObj)) {
-        delete ruleObj.position; // Remove position. We don't need that any longer
+        cleanUnusedProperties(ruleObj); // Remove position. We don't need that any longer
 
         // Handle MediaQuery
         if (Rule.isMediaRule(ruleObj)) {
             const media = Ast.MEDIA_PREFIX + ruleObj.media;
             const mediaRulesArr = map.get(media);
             const mRules        = ruleObj.rules;
-
-            for(const mRule of mRules) {
-                delete mRule.position; // Remove position. We don't need that any longer
-            }
 
             // There are already media rules in our set
             if (mediaRulesArr && mediaRulesArr.length > 0) {

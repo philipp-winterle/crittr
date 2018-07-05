@@ -18,7 +18,7 @@ const testCase = {
 staticServer.listen(8000, async () => {
     console.log("Server listening");
     try {
-        const extractedCss = await Crittr({
+        const {critical, rest} = await Crittr({
             urls:            testCase.urls,
             css:             testCase.css,
             timeout:         30000,
@@ -36,7 +36,7 @@ staticServer.listen(8000, async () => {
                 ".forceExclude"
             ]
         });
-        fs.writeFileSync(path.join(rootDir, "./examples/local_urls.css"), extractedCss, "utf-8");
+        fs.writeFileSync(path.join(rootDir, "./examples/local_urls.css"), critical, "utf-8");
     } catch (err) {
         console.error(err);
     }

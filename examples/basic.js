@@ -18,9 +18,9 @@ Crittr({
         width:  1920,
         height: 1080
     }
-})
-    .then(extractedCss => fs.writeFileSync(path.join(rootDir, "./examples/basic.css"), extractedCss, "utf-8"))
-    .catch(err => {
-        console.error(err);
-    });
+}).then( ({critical, rest}) => {
+    fs.writeFileSync(path.join(rootDir, "./examples/basic.css"), critical, "utf-8")
+}).catch(err => {
+    console.error(err);
+});
 

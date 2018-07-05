@@ -54,6 +54,7 @@ class Crittr {
             urls:                [],
             timeout:             DEFAULTS.TIMEOUT,
             pageLoadTimeout:     DEFAULTS.PAGE_LOAD_TIMEOUT,
+            outputRemainingCss: DEFAULTS.OUTPUT_REMAINING_CSS,
             browser:             {
                 userAgent:      DEFAULTS.BROWSER_USER_AGENT,
                 isCacheEnabled: DEFAULTS.BROWSER_CACHE_ENABLED,
@@ -191,7 +192,7 @@ class Crittr {
             }
 
             debug("run - Extraction ended!");
-            resolve([criticalCss, restCss]);
+            resolve({critical: criticalCss, rest: restCss});
         });
     }
 
@@ -354,6 +355,10 @@ class Crittr {
                         reject(errors);
                     }
 
+                    // remember to use wildcards. Greedy seems to be the perfect fit
+                    // Just *selector* matches all selector that have at least selector in their string
+                    // *sel* needs only sel and so on
+
                     // Create the Rule Maps for further iteration
                     debug("getCriticalCssFromUrls - Merging multiple atf ast objects. Size: " + criticalAstSets.size);
                     let atfRuleMap = new Map();
@@ -368,65 +373,67 @@ class Crittr {
                     }
                     debug("getCriticalCssFromUrls - Merging multiple atf ast objects - finished");
 
-                    debug("getCriticalCssFromUrls - Merging multiple rest ast objects. Size: " + restAstSets.size);
+                    // Only do the more time consuming steps if needed
                     let restRuleMap = new Map();
-
-                    for (let astObj of restAstSets) {
-                        debug("getCriticalCssFromUrls - Iterating over astObj");
-                        try {
-                            // Merge all extracted ASTs into a final one
-                            restRuleMap = Ast.generateRuleMap(astObj, restRuleMap);
-                            debug("getCriticalCssFromUrls - Iterating over astObj - Finished");
-                        } catch (err) {
-                            debug("getCriticalCssFromUrls - ERROR merging multiple rest ast objects");
-                            reject(err);
-                        }
-                    }
-                    debug("getCriticalCssFromUrls - Merging multiple rest ast objects - finished");
-
-                    // Filter rules out of restRuleMap which already exists in atfRuleMap
-                    debug("getCriticalCssFromUrls - Filter duplicates of restMap");
-                    for (const [atfRuleKey, atfRuleObj] of atfRuleMap) {
-                        // Check if ruleKey exists in restMap
-                        // If not it is only in atfMap. This is the wanted behaviour
-                        if (restRuleMap.has(atfRuleKey)) {
-                            // Get the rules array for the rule key
-                            let restRuleArr = restRuleMap.get(atfRuleKey);
-                            // RestMap has the same ruleKey as atf. We need to check now if the rules in this key match
-                            // But before we divide between media rules and rules
-                            restRuleArr = restRuleArr.filter(ruleObj => !atfRuleObj.some(atfRule => ruleObj.hash === atfRule.hash));
-                            if (restRuleArr.length > 0) {
-                                restRuleMap.set(atfRuleKey, restRuleArr);
-                            } else {
-                                restRuleMap.delete(atfRuleKey);
+                    if(this.options.outputRemainingCss) {
+                        debug("getCriticalCssFromUrls - Merging multiple rest ast objects. Size: " + restAstSets.size);
+                        for (let astObj of restAstSets) {
+                            try {
+                                // Merge all extracted ASTs into a final one
+                                restRuleMap = Ast.generateRuleMap(astObj, restRuleMap);
+                            } catch (err) {
+                                debug("getCriticalCssFromUrls - ERROR merging multiple rest ast objects");
+                                reject(err);
                             }
                         }
+                        debug("getCriticalCssFromUrls - Merging multiple rest ast objects - finished");
+
+                        // Filter rules out of restRuleMap which already exists in atfRuleMap
+                        debug("getCriticalCssFromUrls - Filter duplicates of restMap");
+                        for (const [atfRuleKey, atfRuleObj] of atfRuleMap) {
+                            // Check if ruleKey exists in restMap
+                            // If not it is only in atfMap. This is the wanted behaviour
+                            if (restRuleMap.has(atfRuleKey)) {
+                                // Get the rules array for the rule key
+                                let restRuleArr = restRuleMap.get(atfRuleKey);
+                                // RestMap has the same ruleKey as atf. We need to check now if the rules in this key match
+                                // But before we divide between media rules and rules
+                                restRuleArr = restRuleArr.filter(ruleObj => !atfRuleObj.some(atfRule => ruleObj.hash === atfRule.hash));
+                                if (restRuleArr.length > 0) {
+                                    restRuleMap.set(atfRuleKey, restRuleArr);
+                                } else {
+                                    restRuleMap.delete(atfRuleKey);
+                                }
+                            }
+                        }
+                        debug("getCriticalCssFromUrls - Filter duplicates of restMap - finished");
                     }
-                    debug("getCriticalCssFromUrls - Filter duplicates of restMap - finished");
+
 
                     // Create the AST Objects out of the RuleMaps to being able to convert them to CSS again
                     debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap");
                     let finalAtfAst = Ast.getAstOfRuleMap(atfRuleMap);
-                    debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap - Finished");
-
-                    debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap");
-                    let finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
-                    debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap - Finished");
-
-                    // remember to use wildcards. Greedy seems to be the perfect fit
-                    // Just *selector* matches all selector that have at least selector in their string
-                    // *sel* needs only sel and so on
                     let finalCss     = this._cssTransformator.getCssFromAst(finalAtfAst).code;
-                    let finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst).code;
-
                     // Handle sorting by option
                     finalCss = mqpacker.pack(finalCss, {
                         sort: sortCSSmq
                     });
+                    debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap - Finished");
 
-                    finalRestCss = mqpacker.pack(finalRestCss, {
-                        sort: sortCSSmq
-                    });
+                    // Handle restCSS
+                    let finalRestAst = null;
+                    let finalRestCss = "";
+                    if(this.options.outputRemainingCss) {
+                        debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap");
+                        finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
+                        debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap - Finished");
+
+                        finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst).code;
+
+                        finalRestCss = mqpacker.pack(finalRestCss, {
+                            sort: sortCSSmq
+                        });
+                    }
 
                     resolve([finalCss, finalRestCss, errors]);
                 })
