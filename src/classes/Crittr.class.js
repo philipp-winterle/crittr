@@ -10,7 +10,11 @@ const merge           = require('deepmerge');
 const Queue           = require('run-queue');
 const puppeteer       = require('puppeteer');
 const devices         = require('puppeteer/DeviceDescriptors');
-const DEFAULTS        = require('../Constants');
+const mqpacker        = require("css-mqpacker");
+const sortCSSmq       = require('sort-css-media-queries');
+
+const DEFAULTS = require('../Constants');
+const Ast      = require("./Ast.class");
 
 const CssTransformator          = require('./CssTransformator.class');
 const extractCriticalCss_script = require('../evaluation/extract_critical_with_css');
@@ -144,7 +148,7 @@ class Crittr {
             debug("run - Starting run ...");
 
             let criticalCss = "";
-            let restCss = "";
+            let restCss     = "";
             let errors      = [];
 
             try {
@@ -358,39 +362,56 @@ class Crittr {
                         }
                     };
 
-                    let finalRestAst = {
-                        "type":       "stylesheet",
-                        "stylesheet": {
-                            "rules": []
-                        }
-                    };
-
-                    for (let astMap of criticalAstSets) {
+                    debug("getCriticalCssFromUrls - merging multiple atf ast objects. Size: " + criticalAstSets.size);
+                    for (let astObj of criticalAstSets) {
                         try {
                             // Filter selectors which have to be force removed
-                            astMap   = this._cssTransformator.filterSelector(astMap, this.options.removeSelectors);
+                            astObj = this._cssTransformator.filterSelector(astObj, this.options.removeSelectors);
                             // Merge all extracted ASTs into a final one
-                            finalAst = await this._cssTransformator.merge(finalAst, astMap);
+                            // TODO: change merge to faster option
+                            finalAst = await this._cssTransformator.merge(finalAst, astObj);
                         } catch (err) {
+                            debug("getCriticalCssFromUrls - ERROR merging multiple atf ast objects");
                             reject(err);
                         }
                     }
+                    debug("getCriticalCssFromUrls - finished merging multiple atf ast objects");
 
-                    for (let astMap of restAstSets) {
+                    debug("getCriticalCssFromUrls - merging multiple rest ast objects. Size: " + restAstSets.size);
+                    let restRuleMap = new Map();
+
+                    for (let astObj of restAstSets) {
+                        debug("getCriticalCssFromUrls - Iterating over astObj");
                         try {
                             // Merge all extracted ASTs into a final one
-                            finalRestAst = await this._cssTransformator.merge(finalRestAst, astMap);
+                            restRuleMap = Ast.generateRuleMap(astObj, restRuleMap);
+                            debug("getCriticalCssFromUrls - Iterating over astObj - Finished");
                         } catch (err) {
+                            debug("getCriticalCssFromUrls - ERROR merging multiple rest ast objects");
                             reject(err);
                         }
                     }
+                    debug("getCriticalCssFromUrls - Creating AST Object of ruleMap");
+                    let finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
+                    debug("getCriticalCssFromUrls - Creating AST Object of ruleMap - Finished");
+                    debug("getCriticalCssFromUrls - finished merging multiple rest ast objects");
 
                     // remember to use wildcards. Greedy seems to be the perfect fit
                     // Just *selector* matches all selector that have at least selector in their string
                     // *sel* needs only sel and so on
-                    const finalCss = this._cssTransformator.getCssFromAst(finalAst);
-                    const finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst);
-                    resolve([finalCss.code, finalRestCss.code, errors]);
+                    let finalCss     = this._cssTransformator.getCssFromAst(finalAst).code;
+                    let finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst).code;
+
+                    // Handle sorting by option
+                    finalCss = mqpacker.pack(finalCss, {
+                        sort: sortCSSmq
+                    });
+
+                    finalRestCss = mqpacker.pack(finalRestCss, {
+                        sort: sortCSSmq
+                    });
+
+                    resolve([finalCss, finalRestCss, errors]);
                 })
                 .catch(err => {
                     reject(err);
@@ -544,10 +565,11 @@ class Crittr {
                     debug("evaluateUrl - Extracting critical selectors");
                     await page.waitFor(250); // Needed because puppeteer sometimes isnt able to handle quick tab openings
                     criticalSelectorsMap = new Map(await page.evaluate(extractCriticalCss_script, {
-                        sourceAst:     sourceAst,
-                        loadTimeout:   this.options.pageLoadTimeout,
-                        keepSelectors: this.options.keepSelectors,
-                        dropKeyframes: this.options.dropKeyframes
+                        sourceAst:       sourceAst,
+                        loadTimeout:     this.options.pageLoadTimeout,
+                        keepSelectors:   this.options.keepSelectors,
+                        removeSelectors: this.options.removeSelectors,
+                        dropKeyframes:   this.options.dropKeyframes
                     }));
                     debug("evaluateUrl - Extracting critical selectors - successful! Length: " + criticalSelectorsMap.size);
                 } catch (err) {
@@ -556,8 +578,6 @@ class Crittr {
                 }
 
                 debug("evaluateUrl - cleaning up AST with criticalSelectorMap");
-                // TODO: Check here for multiple selector split
-                // NOTE: HIER WEITER MACHEN!!!
                 const [criticalAst, restAst] = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
                 criticalAstObj               = criticalAst;
                 restAstObj                   = restAst;

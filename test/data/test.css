@@ -194,3 +194,15 @@ h1, h2, h3, h4, h5, h6 {
         color: royalblue;
     }
 }
+
+@media (max-width: 1337px) {
+    .no-selector {
+        content: "just no";
+    }
+}
+
+@media (max-width: 337px) {
+    .no-selector {
+        content: "just no";
+    }
+}

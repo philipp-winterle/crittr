@@ -7,7 +7,7 @@
  * @param keepSelectors
  * @returns {Promise<Map<Object>>}
  */
-module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
+module.exports = ({sourceAst, loadTimeout, keepSelectors, removeSelectors}) => {
     return new Promise((resolve, reject) => {
         // PRE CONFIG VARS
         const usedSelectorTypes = [
@@ -33,8 +33,9 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
         const PSEUDO_BROWSER_REGEX  = new RegExp(/:?:-[a-z-]*/g);
 
         // ADJUSTMENTS
-        keepSelectors = keepSelectors || [];
-        loadTimeout   = loadTimeout || 2000;
+        keepSelectors   = keepSelectors || [];
+        removeSelectors = removeSelectors || [];
+        loadTimeout     = loadTimeout || 2000;
 
         // innerHeight of window to determine if in viewport
         const height = window.innerHeight;
@@ -57,7 +58,8 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
         stopPageLoadAfterTimeout(Date.now(), loadTimeout);
 
         const isSelectorCritical = (selector) => {
-            if (isSelectorForced(selector)) return true;
+            if (isSelectorForceIncluded(selector)) return true;
+            if (isSelectorForceExcluded(selector)) return false;
 
             // clean selector from important pseudo classes to get him tracked as critical
             const cleanedSelector = getCleanedSelector(selector);
@@ -112,8 +114,12 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
          */
         const isPurePseudo = selector => selector.startsWith(":") && selector.match(PSEUDO_EXCLUDED_REGEX) === null;
 
-        const isSelectorForced = selector => {
+        const isSelectorForceIncluded = selector => {
             return keepSelectors.includes(selector);
+        };
+
+        const isSelectorForceExcluded = selector => {
+            return removeSelectors.includes(selector);
         };
 
         const isElementAboveTheFold = (element) => {
@@ -159,7 +165,7 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors}) => {
                     } else { // IS ALWAYS RULE
 
                         const selectors = rule.selectors || [];
-                        media     = media || "";
+                        media           = media || "";
 
                         // Key for identify
                         const ruleKey = media + selectors.join();

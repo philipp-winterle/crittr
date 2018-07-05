@@ -29,7 +29,9 @@ class CssTransformator {
         ];
 
         this._TYPES_TO_REMOVE = [
-            "comment"
+            "comment",
+            "keyframes",
+            "keyframe"
         ];
         this._TYPES_TO_KEEP   = [
             "charset",

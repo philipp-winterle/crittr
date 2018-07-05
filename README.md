@@ -199,6 +199,8 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 ## FAQ :confused:
  - Why do I need to put my css file in when I only want to extract the critical css?
     You don't need to but if you don't set your css file as an option you may not receive all vendor prefixes you may expect. This is due testing with only one browser engine which drop other prefixes.
+ - After including the remaining css aswell my page starts looking different. Why is that?
+    If you progress more than 1 url at the same time crittr can not determinate where a rule has to be positioned in the whole css to not get in conflict with other rules overwriting them. You have to write clean css to prevent such an behaviour. Overwriting rules should always have longer selectors than the rules they are overwriting to raise priority.
 
 ## Upcoming :trumpet:
 
@@ -207,6 +209,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 - [ ] :grey_question: positioning of critical css rules 
 - [x] :fire: return of the remaining css aswell
 - [x] :grey_question: multi selector partial matches
+- [x] returning of remaining css aswell
 - [ ] :broken_heart: page crash - recover url (page.url()) and retry
 
 ## Known Bugs :shit:

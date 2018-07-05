@@ -2,6 +2,8 @@ const path         = require('path');
 const package_json = require(path.join("..", "package.json"));
 
 module.exports = {
+    // CRITTR BASED
+
     PRINT_BROWSER_CONSOLE:   false,
     DROP_KEYFRAMES:          true,
     PUPPETEER_HEADLESS:      true,
@@ -17,5 +19,8 @@ module.exports = {
     DEVICE_IS_LANDSCAPE:     false,
     TIMEOUT:                 30000,
     PAGE_LOAD_TIMEOUT:       2000,
-    PAGE_RENDER_TIMEOUT:     300
+    PAGE_RENDER_TIMEOUT:     300,
+
+    // CODE BASED
+    RULE_SEPARATOR: "-#-"
 };
