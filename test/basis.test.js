@@ -270,6 +270,5 @@ describe('Basis Test', () => {
 
             expect(exists).toBeTruthy();
         });
-
     });
 });
