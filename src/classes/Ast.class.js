@@ -4,9 +4,6 @@ const CONSTANTS = require('../Constants');
 const Rule      = require("./Rule.class");
 const hash      = require('object-hash');
 
-// PRIVATE CONSTS
-const MEDIA_PREFIX = "@media ";
-
 // PRIVATE FUNCTIONS
 const handleRule = (ruleObj, map) => {
     // Ignore comments
@@ -15,7 +12,7 @@ const handleRule = (ruleObj, map) => {
 
         // Handle MediaQuery
         if (Rule.isMediaRule(ruleObj)) {
-            const media = MEDIA_PREFIX + ruleObj.media;
+            const media = Ast.MEDIA_PREFIX + ruleObj.media;
             const mediaRulesArr = map.get(media);
             const mRules        = ruleObj.rules;
 
@@ -108,20 +105,12 @@ class Ast {
 
         for (let [ruleKey, rulesObj] of ruleMap) {
             // Is this rule a media query?
-            if (ruleKey.includes(MEDIA_PREFIX)) {
-                const mqStr = ruleKey.replace(MEDIA_PREFIX, "");
+            if (ruleKey.includes(Ast.MEDIA_PREFIX)) {
+                const mqStr = ruleKey.replace(Ast.MEDIA_PREFIX, "");
                 astRules.push({
                     type: "media",
                     media: mqStr,
                     rules: rulesObj.map(ruleObj => {
-                        // NOTE HIER ist eine normale rule drin. ka warum finde es heraus
-                        // TODO: BOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM only screen and (max-width:1023px) [ { hash: 'a8dd876be698c39d6f0f414a39185192',
-                        /*
-                        { type: 'rule',
-                            selectors: [ '.c24-nav.open .c24-nav-button:after' ],
-                            declarations: [ [Object] ] } ]
-                         */
-                        if (ruleObj === undefined || ruleObj.rule === undefined) console.log("BOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM", mqStr, rulesObj)
                         return ruleObj.rule;
                     })
                 })
@@ -132,10 +121,16 @@ class Ast {
 
         return ast;
     }
+
+    static isMediaObj(ruleKey) {
+        return ruleKey.includes(Ast.MEDIA_PREFIX);
+    }
 }
 
 Ast.TYPES_TO_REMOVE = [
     "comment"
 ];
+
+Ast.MEDIA_PREFIX = "@media ";
 
 module.exports = Ast;

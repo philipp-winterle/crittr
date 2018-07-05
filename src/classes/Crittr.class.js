@@ -354,30 +354,21 @@ class Crittr {
                         reject(errors);
                     }
 
-                    // Go through the critical set and create one out of many
-                    let finalAst = {
-                        "type":       "stylesheet",
-                        "stylesheet": {
-                            "rules": []
-                        }
-                    };
-
-                    debug("getCriticalCssFromUrls - merging multiple atf ast objects. Size: " + criticalAstSets.size);
+                    // Create the Rule Maps for further iteration
+                    debug("getCriticalCssFromUrls - Merging multiple atf ast objects. Size: " + criticalAstSets.size);
+                    let atfRuleMap = new Map();
                     for (let astObj of criticalAstSets) {
                         try {
-                            // Filter selectors which have to be force removed
-                            astObj = this._cssTransformator.filterSelector(astObj, this.options.removeSelectors);
                             // Merge all extracted ASTs into a final one
-                            // TODO: change merge to faster option
-                            finalAst = await this._cssTransformator.merge(finalAst, astObj);
+                            atfRuleMap = Ast.generateRuleMap(astObj, atfRuleMap);
                         } catch (err) {
                             debug("getCriticalCssFromUrls - ERROR merging multiple atf ast objects");
                             reject(err);
                         }
                     }
-                    debug("getCriticalCssFromUrls - finished merging multiple atf ast objects");
+                    debug("getCriticalCssFromUrls - Merging multiple atf ast objects - finished");
 
-                    debug("getCriticalCssFromUrls - merging multiple rest ast objects. Size: " + restAstSets.size);
+                    debug("getCriticalCssFromUrls - Merging multiple rest ast objects. Size: " + restAstSets.size);
                     let restRuleMap = new Map();
 
                     for (let astObj of restAstSets) {
@@ -391,15 +382,41 @@ class Crittr {
                             reject(err);
                         }
                     }
-                    debug("getCriticalCssFromUrls - Creating AST Object of ruleMap");
+                    debug("getCriticalCssFromUrls - Merging multiple rest ast objects - finished");
+
+                    // Filter rules out of restRuleMap which already exists in atfRuleMap
+                    debug("getCriticalCssFromUrls - Filter duplicates of restMap");
+                    for (const [atfRuleKey, atfRuleObj] of atfRuleMap) {
+                        // Check if ruleKey exists in restMap
+                        // If not it is only in atfMap. This is the wanted behaviour
+                        if (restRuleMap.has(atfRuleKey)) {
+                            // Get the rules array for the rule key
+                            let restRuleArr = restRuleMap.get(atfRuleKey);
+                            // RestMap has the same ruleKey as atf. We need to check now if the rules in this key match
+                            // But before we divide between media rules and rules
+                            restRuleArr = restRuleArr.filter(ruleObj => !atfRuleObj.some(atfRule => ruleObj.hash === atfRule.hash));
+                            if (restRuleArr.length > 0) {
+                                restRuleMap.set(atfRuleKey, restRuleArr);
+                            } else {
+                                restRuleMap.delete(atfRuleKey);
+                            }
+                        }
+                    }
+                    debug("getCriticalCssFromUrls - Filter duplicates of restMap - finished");
+
+                    // Create the AST Objects out of the RuleMaps to being able to convert them to CSS again
+                    debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap");
+                    let finalAtfAst = Ast.getAstOfRuleMap(atfRuleMap);
+                    debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap - Finished");
+
+                    debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap");
                     let finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
-                    debug("getCriticalCssFromUrls - Creating AST Object of ruleMap - Finished");
-                    debug("getCriticalCssFromUrls - finished merging multiple rest ast objects");
+                    debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap - Finished");
 
                     // remember to use wildcards. Greedy seems to be the perfect fit
                     // Just *selector* matches all selector that have at least selector in their string
                     // *sel* needs only sel and so on
-                    let finalCss     = this._cssTransformator.getCssFromAst(finalAst).code;
+                    let finalCss     = this._cssTransformator.getCssFromAst(finalAtfAst).code;
                     let finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst).code;
 
                     // Handle sorting by option

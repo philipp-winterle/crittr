@@ -72,6 +72,10 @@ class Rule {
         return rule.type === "comment";
     }
 
+    static isFontFace(rule) {
+        return rule.type === "font-face";
+    }
+
     static isStylesheet(rule) {
         return rule.type === "stylesheet";
     }
@@ -111,6 +115,8 @@ class Rule {
             ruleStr = rule.values.join();
         } else if (Rule.isMediaRule(rule)) {
             ruleStr = rule.media;
+        } else if (Rule.isFontFace(rule)) {
+            ruleStr = rule.type;
         } else if (Rule.isComment(rule)) {
             return false;
         } else {
