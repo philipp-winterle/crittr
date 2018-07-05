@@ -4,7 +4,7 @@ const log          = require("signale");
 const path         = require("path");
 const NODE_ENV     = process.env.NODE_ENV || "production";
 const pathToCrittr = NODE_ENV === "development" ? "src" : "lib";
-const Crittr       = require('./' + path.join('.', pathToCrittr, 'classes/Crittr.class'));
+const Crittr       = require(path.join(__dirname, pathToCrittr, 'classes', 'Crittr.class.js'));
 
 /**
  *
