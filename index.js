@@ -3,7 +3,12 @@
 const log          = require("signale");
 const path         = require("path");
 const NODE_ENV     = process.env.NODE_ENV || "production";
-const pathToCrittr = NODE_ENV === "development" ? "src" : "lib";
+let IS_NPM_PACKAGE = false;
+try {
+    IS_NPM_PACKAGE = !!require.resolve("crittr");
+} catch (e) {}
+
+const pathToCrittr = NODE_ENV === "development" && !IS_NPM_PACKAGE ? "src" : "lib";
 const Crittr       = require(path.join(__dirname, pathToCrittr, 'classes', 'Crittr.class.js'));
 
 /**
@@ -14,8 +19,8 @@ const Crittr       = require(path.join(__dirname, pathToCrittr, 'classes', 'Crit
 module.exports = (options) => {
     return new Promise(async (resolve, reject) => {
         log.time("Crittr Run");
-        const crttr      = new Crittr(options);
-        let resultObj  = {critical: null, rest: null};
+        const crttr   = new Crittr(options);
+        let resultObj = {critical: null, rest: null};
         try {
             (resultObj = await crttr.run());
         } catch (err) {

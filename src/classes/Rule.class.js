@@ -103,7 +103,7 @@ class Rule {
 
     static generateRuleKey(rule, media = "", withKeySeparator = false) {
         const keySeparator = withKeySeparator ? CONSTANTS.RULE_SEPARATOR : "";
-        let ruleStr;
+        let ruleStr = "default";
 
         if (Rule.isRule(rule) && rule.selectors) {
             ruleStr = rule.selectors.join();
@@ -120,8 +120,8 @@ class Rule {
         } else if (Rule.isComment(rule)) {
             return false;
         } else {
-            log.error("Can not generate rule key of rule without selectors! Maybe this is a media query?", rule);
-            return false;
+            //log.error("Can not generate rule key of rule without selectors! Setting default key!", rule);
+            return ruleStr;
         }
 
         return media + keySeparator + ruleStr;

@@ -28,14 +28,11 @@ class CssTransformator {
             ':first-line'
         ];
 
-        this._TYPES_TO_REMOVE = [
-            "comment",
-            "keyframes",
-            "keyframe"
-        ];
-        this._TYPES_TO_KEEP   = [
+        this.CRITICAL_TYPES_TO_KEEP = [
+            "media",
+            "rule",
             "charset",
-            "font-face"
+            "font-face",
         ];
 
         // detect these selectors regardless of whether one or two semicolons are used
@@ -72,84 +69,6 @@ class CssTransformator {
     }
 
     /**
-     * Remove all selectors that match one of the removeSelectors.
-     * Mutates the original Object
-     *
-     * @param ast {Object}
-     * @param removeSelectors {Array<String>}
-     * @returns {Object}
-     */
-    filterSelector(ast, removeSelectors) {
-        if (!Array.isArray(removeSelectors)) {
-            log.warn("removeSelectors have to be an array to be processed");
-            return false;
-        }
-
-        let rules = ast;
-
-        // Get Rules of ast object and keep reference
-        if (ast.stylesheet) {
-            rules = ast.stylesheet.rules;
-        } else if (ast.rules) {
-            rules = ast.rules;
-        }
-
-        const compareFn = (a, b) => {
-            return b - a;
-        };
-
-        const removeableRules = [];
-
-        for (const ruleIndex in rules) {
-            if (rules.hasOwnProperty(ruleIndex)) {
-                const rule = rules[ruleIndex];
-
-                if (Rule.isMediaRule(rule)) {
-                    // Recursive check of CSSMediaRule
-                    this.filterSelector(rule, removeSelectors);
-                } else {
-                    //  CSSRule
-                    const selectors           = rule.selectors;
-                    const removeableSelectors = [];
-
-                    for (let selectorIndex in selectors) {
-                        if (selectors.hasOwnProperty(selectorIndex)) {
-                            const selector = selectors[selectorIndex];
-
-                            // TODO: deal with wildcards
-                            if (removeSelectors.includes(selector)) {
-                                // More than one selector in there. Only remove the match and keep the other one.
-                                // If only one selector exists remove the whole rule
-                                if (selectors.length > 1) {
-                                    removeableSelectors.push(selectorIndex);
-                                } else {
-                                    removeableRules.push(ruleIndex);
-                                }
-                            }
-                        }
-                    }
-
-                    // Sort the removeableSelectors DESC to remove them properly from the selectors end to start
-                    removeableSelectors.sort(compareFn);
-                    // Now remove them
-                    for (let selectorIndex of removeableSelectors) {
-                        selectors.splice(selectorIndex, 1);
-                    }
-                }
-            }
-        }
-
-        // Sort the removeableRules DESC to remove them properly from the rules end to start
-        removeableRules.sort(compareFn);
-        // Now remove them
-        for (let ruleIndex of removeableRules) {
-            rules.splice(ruleIndex, 1);
-        }
-
-        return ast;
-    }
-
-    /**
      * Filters the AST Object with the selectorMap <Map> containing selectors.
      * Returns a new AST Object without those selectors. Does NOT mutate the AST.
      *
@@ -177,9 +96,9 @@ class CssTransformator {
             return [];
         };
 
-        // Filter rule types we don't want
+        // Filter rule types we don't want in critical
         let newRules = _astRoot.rules.filter(rule => {
-            return !this._TYPES_TO_REMOVE.includes(rule.type);
+            return this.CRITICAL_TYPES_TO_KEEP.includes(rule.type);
         });
 
         // HANDLE CRITICAL CSS
@@ -261,7 +180,7 @@ class CssTransformator {
 
         // Process removeables
         restRules = restRules.filter(rule => {
-            return !(removeableRules.includes(rule) || this._TYPES_TO_KEEP.includes(rule.type));
+            return !(removeableRules.includes(rule));
         });
 
         _astRoot.rules     = newRules;
