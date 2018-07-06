@@ -417,7 +417,7 @@ class Crittr {
                     // Handle sorting by option
                     finalCss = mqpacker.pack(finalCss, {
                         sort: sortCSSmq
-                    });
+                    }).css;
                     debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap - Finished");
 
                     // Handle restCSS
@@ -432,7 +432,7 @@ class Crittr {
 
                         finalRestCss = mqpacker.pack(finalRestCss, {
                             sort: sortCSSmq
-                        });
+                        }).css;
                     }
 
                     resolve([finalCss, finalRestCss, errors]);
