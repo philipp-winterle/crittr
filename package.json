@@ -61,7 +61,7 @@
   ],
   "husky": {
     "hooks": {
-      "pre-commit": "npm test && git add lib/*"
+      "pre-commit": "npm build && git add lib/* && npm test"
     }
   }
 }
