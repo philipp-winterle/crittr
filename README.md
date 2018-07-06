@@ -208,6 +208,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 - [ ] :star: cookie includes
 - [ ] :star: wildcards
 - [ ] :grey_question: positioning of critical css rules 
+- [ ] :+1: compress output option
 - [x] :fire: return of the remaining css aswell
 - [x] :grey_question: multi selector partial matches
 - [x] :tea: returning of remaining css aswell (optional)
