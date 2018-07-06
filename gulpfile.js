@@ -7,7 +7,6 @@ const clean  = require('gulp-clean');
 const srcDir = path.join("./", "src", "**");
 const libDir = path.join("./", "lib");
 
-
 gulp.task('cleanup', () => {
     return gulp.src(libDir, {read: false})
                .pipe(clean());
