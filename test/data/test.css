@@ -1,5 +1,9 @@
 @charset "UTF-8";
 
+@font-face {
+    font-family: Keep Critical;
+}
+
 .standard-selector {
     color: black;
 }

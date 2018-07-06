@@ -47,6 +47,13 @@ describe('Basis Test', () => {
                         console.warn("Unkown rule type -> not recognized: ", rule.type);
                     }
                 }
+            } else {
+                if (criticalSelectorRules.has(rule.type)) {
+                    let count = criticalSelectorRules.get(rule.type);
+                    criticalSelectorRules.set(rule.type, ++count);
+                } else {
+                    criticalSelectorRules.set(rule.type, 1);
+                }
             }
         }
 
@@ -268,6 +275,11 @@ describe('Basis Test', () => {
                 }
             });
 
+            expect(exists).toBeTruthy();
+        });
+
+        test("Font-Face should be in critical css", () => {
+            const exists = criticalSelectorRules.has("font-face");
             expect(exists).toBeTruthy();
         });
     });
