@@ -219,7 +219,7 @@ None yet
 
 ## Troubleshooting
 
-### WSL / Windows Linux Subsystem Support
+#### WSL / Windows Linux Subsystem Support
 Some unkown reasons prevent puppeteer to run properly in a WSL environment. If you have any errors please try to use your default OS command shell or equivalent. If the error still exists don't hesitate to create an issue ticket.
 
 ## Inspiration
