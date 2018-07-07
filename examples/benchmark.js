@@ -97,30 +97,30 @@ staticServer.listen(8000, async () => {
     console.log("Start CriticalCss Benchmark");
     const criticalcss = require("criticalcss");
     console.time("CriticalCss");
-    const criticalCssWrapper = async () => {
-        for (const url of urls) {
-            await new Promise(resolve => {
-                criticalcss.getRules(path.join(rootDir, "/test/data/test.css"), function (err, output) {
-                    criticalcss.findCritical(url, {
-                        rules:        JSON.parse(output),
-                        width:        1920,
-                        height:       1080,
-                        forceInclude: [
-                            ".forceInclude"
-                        ]
-                    }, function (err, output) {
-                        if (err) {
-                            throw new Error(err);
-                        } else {
-                            resolve(output);
-                        }
-                    });
-                });
-            })
-        }
-        return;
-    };
-    await criticalCssWrapper();
+    try {
+        await Promise.all(urls.map(url => {
+          return new Promise(resolve => {
+              criticalcss.getRules(path.join(rootDir, "/test/data/test.css"), function (err, output) {
+                  criticalcss.findCritical(url, {
+                      rules:        JSON.parse(output),
+                      width:        1920,
+                      height:       1080,
+                      forceInclude: [
+                          ".forceInclude"
+                      ]
+                  }, function (err, output) {
+                      if (err) {
+                          throw new Error(err);
+                      } else {
+                          resolve(output);
+                      }
+                  });
+              });
+        });
+      }));
+    } catch (err) {
+      console.error(err);
+    }
     console.timeEnd("CriticalCss");
 
     /**
