@@ -72,24 +72,22 @@ staticServer.listen(8000, async () => {
     console.log("Start Penthouse Benchmark");
     const penthouse = require('penthouse');
     console.time("Penthouse");
-    for (const url of urls) {
-        try {
+    try {
+      await Promise.all(urls.map(url => {
+        return penthouse({
+            url:             url,
+            css:             rootDir + "/test/data/test.css",
+            width:           1920,
+            height:          1080,
+            forceInclude:    [
+                ".forceInclude"
+            ],
+            blockJsRequests: false
 
-            const extracedCss = await penthouse({
-                url:             url,
-                css:             rootDir + "/test/data/test.css",
-                width:           1920,
-                height:          1080,
-                forceInclude:    [
-                    ".forceInclude"
-                ],
-                blockJsRequests: false
-
-            });
-
-        } catch (err) {
-            console.error(err);
-        }
+        });
+      }))
+    } catch (err) {
+      console.error(err);
     }
     console.timeEnd("Penthouse");
 
@@ -126,7 +124,7 @@ staticServer.listen(8000, async () => {
     console.timeEnd("CriticalCss");
 
     /**
-     * CRITICALCSS
+     * CRITICAL
      */
     console.log("Start Critical Benchmark");
     const critical = require('critical');
@@ -151,5 +149,3 @@ staticServer.listen(8000, async () => {
 }).on("error", (err) => {
     console.error(err)
 });
-
-
