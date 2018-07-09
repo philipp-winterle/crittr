@@ -473,9 +473,8 @@ class Crittr {
                     // Handle restCSS
                     let finalRestCss = "";
                     if(this.options.outputRemainingCss) {
-                        console.time("NEU")
                         debug("getCriticalCssFromUrls - Filter duplicates of restMap");
-                        console.time("ITERATEMAPS")
+                        // Iterate over atfRules to remove them from restRules
                         for (const [atfRuleKey, atfRuleObj] of atfRuleMap) {
                             // Check if ruleKey exists in restMap
                             // If not it is only in atfMap. This is the wanted behaviour
@@ -492,22 +491,15 @@ class Crittr {
                                 }
                             }
                         }
-                        console.timeEnd("ITERATEMAPS")
                         debug("getCriticalCssFromUrls - Filter duplicates of restMap - finished");
 
-                        console.time("CONVERTMAPS")
-                        let finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
-                        finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst);
-
-                        console.timeEnd("CONVERTMAPS")
-                        console.time("MINIFYREST")
-                        finalRestCss = ccss.minify(finalRestCss).styles;
+                        let finalRestAst = Ast.getAstOfRuleMap(restRuleMap); // Create an AST object of a crittr rule map
+                        finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst); // Transform AST back to css
+                        finalRestCss = ccss.minify(finalRestCss).styles; // remove and merge remaining dupes
+                        // Resort media queries. They can be moved due to clean-css and crittr rule maps
                         finalRestCss = mqpacker.pack(finalRestCss, {
                             sort: sortCSSmq
                         }).css;
-                        console.timeEnd("MINIFYREST")
-
-                        console.timeEnd("NEU")
                     }
 
                     resolve([finalCss, finalRestCss, errors]);
