@@ -13,6 +13,8 @@ const devices         = require('puppeteer/DeviceDescriptors');
 const mqpacker        = require("css-mqpacker");
 const sortCSSmq       = require('sort-css-media-queries');
 
+const CleanCSS = require('clean-css');
+
 const DEFAULTS = require('../Constants');
 const Ast      = require("./Ast.class");
 
@@ -362,6 +364,7 @@ class Crittr {
                     // Create the Rule Maps for further iteration
                     debug("getCriticalCssFromUrls - Merging multiple atf ast objects. Size: " + criticalAstSets.size);
                     let atfRuleMap = new Map();
+                    let criticalcss = "";
                     for (let astObj of criticalAstSets) {
                         try {
                             // Merge all extracted ASTs into a final one
@@ -409,30 +412,102 @@ class Crittr {
                         debug("getCriticalCssFromUrls - Filter duplicates of restMap - finished");
                     }
 
+                    // CleanCSS Config
+                    const ccss = new CleanCSS({
+                        compatibility: '*',
+                        properties: {
+                            backgroundClipMerging: false, // controls background-clip merging into shorthand
+                            backgroundOriginMerging: false, // controls background-origin merging into shorthand
+                            backgroundSizeMerging: false, // controls background-size merging into shorthand
+                            colors: false, // controls color optimizations
+                            ieBangHack: false, // controls keeping IE bang hack
+                            ieFilters: false, // controls keeping IE `filter` / `-ms-filter`
+                            iePrefixHack: false, // controls keeping IE prefix hack
+                            ieSuffixHack: false, // controls keeping IE suffix hack
+                            merging: false, // controls property merging based on understandability
+                            shorterLengthUnits: false, // controls shortening pixel units into `pc`, `pt`, or `in` units
+                            spaceAfterClosingBrace: false, // controls keeping space after closing brace - `url() no-repeat` into `url()no-repeat`
+                            urlQuotes: false, // controls keeping quoting inside `url()`
+                            zeroUnits: false // controls removal of units `0` value
+                        },
+                        selectors: {
+                            adjacentSpace: false, // controls extra space before `nav` element
+                            ie7Hack: false, // controls removal of IE7 selector hacks, e.g. `*+html...`
+                            mergeLimit: 8191, // controls maximum number of selectors in a single rule (since 4.1.0)
+                            multiplePseudoMerging: false // controls merging of rules with multiple pseudo classes / elements (since 4.1.0)
+                        },
+                        level: {
+                            1: {
+                                all: false,
+                                cleanupCharsets: true, // controls `@charset` moving to the front of a stylesheet; defaults to `true`
+                                removeWhitespace: true // controls removing unused whitespace; defaults to `true`
+                            },
+                            2: {
+                                mergeAdjacentRules: true, // controls adjacent rules merging; defaults to true
+                                mergeIntoShorthands: true, // controls merging properties into shorthands; defaults to true
+                                mergeMedia: true, // controls `@media` merging; defaults to true
+                                mergeNonAdjacentRules: true, // controls non-adjacent rule merging; defaults to true
+                                mergeSemantically: false, // controls semantic merging; defaults to false
+                                overrideProperties: true, // controls property overriding based on understandability; defaults to true
+                                removeEmpty: true, // controls removing empty rules and nested blocks; defaults to `true`
+                                reduceNonAdjacentRules: true, // controls non-adjacent rule reducing; defaults to true
+                                removeDuplicateFontRules: true, // controls duplicate `@font-face` removing; defaults to true
+                                removeDuplicateMediaBlocks: true, // controls duplicate `@media` removing; defaults to true
+                                removeDuplicateRules: true, // controls duplicate rules removing; defaults to true
+                                removeUnusedAtRules: false, // controls unused at rule removing; defaults to false (available since 4.1.0)
+                                restructureRules: false, // controls rule restructuring; defaults to false
+                            }
+                        }
+                    });
 
                     // Create the AST Objects out of the RuleMaps to being able to convert them to CSS again
                     debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap");
                     let finalAtfAst = Ast.getAstOfRuleMap(atfRuleMap);
-                    let finalCss     = this._cssTransformator.getCssFromAst(finalAtfAst).code;
+                    let finalCss     = this._cssTransformator.getCssFromAst(finalAtfAst);
+                    finalCss = ccss.minify(finalCss).styles;
                     // Handle sorting by option
                     finalCss = mqpacker.pack(finalCss, {
                         sort: sortCSSmq
                     }).css;
-                    debug("getCriticalCssFromUrls - Creating AST Object of atf ruleMap - Finished");
 
                     // Handle restCSS
-                    let finalRestAst = null;
                     let finalRestCss = "";
                     if(this.options.outputRemainingCss) {
-                        debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap");
-                        finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
-                        debug("getCriticalCssFromUrls - Creating AST Object of remaining ruleMap - Finished");
+                        console.time("NEU")
+                        debug("getCriticalCssFromUrls - Filter duplicates of restMap");
+                        console.time("ITERATEMAPS")
+                        for (const [atfRuleKey, atfRuleObj] of atfRuleMap) {
+                            // Check if ruleKey exists in restMap
+                            // If not it is only in atfMap. This is the wanted behaviour
+                            if (restRuleMap.has(atfRuleKey)) {
+                                // Get the rules array for the rule key
+                                let restRuleArr = restRuleMap.get(atfRuleKey);
+                                // RestMap has the same ruleKey as atf. We need to check now if the rules in this key match
+                                // But before we divide between media rules and rules
+                                restRuleArr = restRuleArr.filter(ruleObj => !atfRuleObj.some(atfRule => ruleObj.hash === atfRule.hash));
+                                if (restRuleArr.length > 0) {
+                                    restRuleMap.set(atfRuleKey, restRuleArr);
+                                } else {
+                                    restRuleMap.delete(atfRuleKey);
+                                }
+                            }
+                        }
+                        console.timeEnd("ITERATEMAPS")
+                        debug("getCriticalCssFromUrls - Filter duplicates of restMap - finished");
 
-                        finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst).code;
+                        console.time("CONVERTMAPS")
+                        let finalRestAst = Ast.getAstOfRuleMap(restRuleMap);
+                        finalRestCss = this._cssTransformator.getCssFromAst(finalRestAst);
 
+                        console.timeEnd("CONVERTMAPS")
+                        console.time("MINIFYREST")
+                        finalRestCss = ccss.minify(finalRestCss).styles;
                         finalRestCss = mqpacker.pack(finalRestCss, {
                             sort: sortCSSmq
                         }).css;
+                        console.timeEnd("MINIFYREST")
+
+                        console.timeEnd("NEU")
                     }
 
                     resolve([finalCss, finalRestCss, errors]);
