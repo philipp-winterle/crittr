@@ -65,7 +65,7 @@ class CssTransformator {
             compress:        false,
             sourcemap:       true,
             inputSourcemaps: true
-        })
+        }).code;
     }
 
     /**
