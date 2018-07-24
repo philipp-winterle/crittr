@@ -9,10 +9,10 @@
 
 
 > High performance critical css extraction library with a multiple url support. 
-> crittr enables you to extract the critical path stylesheet rules of a single or multiple urls with lightning speed. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this faster than any other library! :muscle:
+> crittr enables you to extract the critical path stylesheet rules of a single or multiple urls with lightning speed. Multiple urls are the unique selling point of this library due to the fact that nearly every website using one css file for multiple sub pages. Now you are able to gather the critical css of all pages in one extracting process. And this blazing fast even with rich internet applications! :muscle:
 
 #### Feature Facts
-* Faster than other libraries doing similar work (factor 4x)
+* Amazing speed
 * Designed to be used by power users as a nodejs module (no useless browser usage)
 * :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
 * When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
@@ -20,11 +20,12 @@
 * Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
 
 ## Performance
-To determine the performance compared to the competitors a benchmark test was created. To achieve the results the benchmark uses a set of 20 urls for one css file. This is repeated for every library. Due to the fact that crittr was build to handle multiple urls it has an obvious advantage. Nevertheless the other libraries like penthouse or critical (uses penthouse) are also fast in single processing. But I would say this will not be a common use case anymore. :no_good:
+If you use many urls to check against a single css file it will slow down the process. Anyway this is the scenario where crittr can shine. The only thing you need to take care about is the power of the machine you running crittr. 
 
-![Benchmark](/docs/img/crittr_benchmark.png)
+## Comparison
+There are some other libraries out there dealing with the topic of extracting the critical css. Crittr has it's own approach of dealing with this topic. Many features allow users to forget about using any other libraries because crittr already deal with the most things which are important for extracting critical css. 
 
-To replay the benchmarks you can use the [benchmark example](https://github.com/hummal/crittr/blob/master/examples/benchmark.js) in this repository.
+![Comparison](/docs/img/comp_table.png)
 
 ## Getting Started
 ### Requirements
@@ -208,12 +209,11 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 - [ ] :star: cookie includes
 - [ ] :star: wildcards
 - [ ] :grey_question: positioning of critical css rules 
-- [ ] :+1: compress output option
+- [x] :+1: compress output option
 - [x] :fire: return of the remaining css aswell
 - [x] :grey_question: multi selector partial matches
 - [x] :tea: returning of remaining css aswell (optional)
 - [x] :clock2: performance boost for large css
-- [ ] :broken_heart: page crash - recover url (page.url()) and retry
 
 ## Known Bugs :shit:
 None yet
