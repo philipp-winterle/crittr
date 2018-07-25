@@ -115,7 +115,8 @@ class Crittr {
                 log.error(message);
             });
             // Exit process when options are invalid
-            process.exit(1);
+            throw new Error("crittr stopped working. See errors above.")
+
         }
     }
 
@@ -129,9 +130,15 @@ class Crittr {
         // Check url
         if (!Array.isArray(this.options.urls)) {
             errors.push({
-                message: "Url not valid"
+                message: "Urls not an Array"
             });
         }
+
+        if (Array.isArray(this.options.urls) && this.options.urls.length === 0) {
+            console.log("FEHLER")
+            errors.push(new Error("NO URLs to check. Insert at least one url in the urls option!"));
+        }
+
 
         if (typeof this.options.css !== "string") {
             errors.push({
