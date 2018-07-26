@@ -151,7 +151,7 @@ class CssTransformator {
                 if (rule.rules) {
                     rule.rules = rule.rules.map(internalRule => {
                         const ruleKey = Rule.generateRuleKey(internalRule, media);
-                        if (criticalSelectorsMap.has(ruleKey)) {
+                        if (ruleKey !== false && criticalSelectorsMap.has(ruleKey)) {
                             const criticalSelectorsOfRule = criticalSelectorsMap.get(ruleKey);
                             internalRule.selectors        = internalRule.selectors.filter(selector => !criticalSelectorsOfRule.includes(selector));
                         }

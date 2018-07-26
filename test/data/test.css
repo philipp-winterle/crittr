@@ -2,6 +2,8 @@
 
 @font-face {
     font-family: Keep Critical;
+    font-style: normal;
+    font-weight: 400
 }
 
 .standard-selector {
@@ -78,6 +80,12 @@ div {
 
 :root .not-existing-selector {
     content: "should not be included";
+}
+
+@font-face {
+    font-family: Keep Critical;
+    font-style: normal;
+    font-weight: 400
 }
 
 h1, h2, h3, h4, h5, h6 {

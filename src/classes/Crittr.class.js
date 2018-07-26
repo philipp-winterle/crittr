@@ -371,7 +371,6 @@ class Crittr {
                     // Create the Rule Maps for further iteration
                     debug("getCriticalCssFromUrls - Merging multiple atf ast objects. Size: " + criticalAstSets.size);
                     let atfRuleMap = new Map();
-                    let criticalcss = "";
                     for (let astObj of criticalAstSets) {
                         try {
                             // Merge all extracted ASTs into a final one
@@ -433,29 +432,29 @@ class Crittr {
                             ieSuffixHack: false, // controls keeping IE suffix hack
                             merging: false, // controls property merging based on understandability
                             shorterLengthUnits: false, // controls shortening pixel units into `pc`, `pt`, or `in` units
-                            spaceAfterClosingBrace: false, // controls keeping space after closing brace - `url() no-repeat` into `url()no-repeat`
-                            urlQuotes: false, // controls keeping quoting inside `url()`
+                            spaceAfterClosingBrace: true, // controls keeping space after closing brace - `url() no-repeat` into `url()no-repeat`
+                            urlQuotes: true, // controls keeping quoting inside `url()`
                             zeroUnits: false // controls removal of units `0` value
                         },
                         selectors: {
                             adjacentSpace: false, // controls extra space before `nav` element
-                            ie7Hack: false, // controls removal of IE7 selector hacks, e.g. `*+html...`
-                            mergeLimit: 8191, // controls maximum number of selectors in a single rule (since 4.1.0)
+                            ie7Hack: true, // controls removal of IE7 selector hacks, e.g. `*+html...`
+                            mergeLimit: 1000, // controls maximum number of selectors in a single rule (since 4.1.0)
                             multiplePseudoMerging: false // controls merging of rules with multiple pseudo classes / elements (since 4.1.0)
                         },
                         level: {
                             1: {
                                 all: false,
                                 cleanupCharsets: true, // controls `@charset` moving to the front of a stylesheet; defaults to `true`
-                                removeWhitespace: true // controls removing unused whitespace; defaults to `true`
+                                removeWhitespace: false // controls removing unused whitespace; defaults to `true`
                             },
                             2: {
-                                mergeAdjacentRules: true, // controls adjacent rules merging; defaults to true
-                                mergeIntoShorthands: true, // controls merging properties into shorthands; defaults to true
+                                mergeAdjacentRules: false, // controls adjacent rules merging; defaults to true
+                                mergeIntoShorthands: false, // controls merging properties into shorthands; defaults to true
                                 mergeMedia: true, // controls `@media` merging; defaults to true
-                                mergeNonAdjacentRules: true, // controls non-adjacent rule merging; defaults to true
+                                mergeNonAdjacentRules: false, // controls non-adjacent rule merging; defaults to true
                                 mergeSemantically: false, // controls semantic merging; defaults to false
-                                overrideProperties: true, // controls property overriding based on understandability; defaults to true
+                                overrideProperties: false, // controls property overriding based on understandability; defaults to true
                                 removeEmpty: true, // controls removing empty rules and nested blocks; defaults to `true`
                                 reduceNonAdjacentRules: true, // controls non-adjacent rule reducing; defaults to true
                                 removeDuplicateFontRules: true, // controls duplicate `@font-face` removing; defaults to true
