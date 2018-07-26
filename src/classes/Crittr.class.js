@@ -620,6 +620,10 @@ class Crittr {
 //                        startedRequests.splice(startedRequests.indexOf(request.url()), 1);
 //                    });
 
+                    page.on("error", err => {
+                        hasError = err;
+                    });
+
                     await page.emulate({
                         viewport:  {
                             width:             deviceOptions.width,
