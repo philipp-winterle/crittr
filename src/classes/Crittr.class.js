@@ -430,7 +430,7 @@ class Crittr {
                             ieFilters: false, // controls keeping IE `filter` / `-ms-filter`
                             iePrefixHack: false, // controls keeping IE prefix hack
                             ieSuffixHack: false, // controls keeping IE suffix hack
-                            merging: false, // controls property merging based on understandability
+                            merging: true, // controls property merging based on understandability
                             shorterLengthUnits: false, // controls shortening pixel units into `pc`, `pt`, or `in` units
                             spaceAfterClosingBrace: true, // controls keeping space after closing brace - `url() no-repeat` into `url()no-repeat`
                             urlQuotes: true, // controls keeping quoting inside `url()`
@@ -449,12 +449,12 @@ class Crittr {
                                 removeWhitespace: false // controls removing unused whitespace; defaults to `true`
                             },
                             2: {
-                                mergeAdjacentRules: false, // controls adjacent rules merging; defaults to true
+                                mergeAdjacentRules: true, // controls adjacent rules merging; defaults to true
                                 mergeIntoShorthands: false, // controls merging properties into shorthands; defaults to true
                                 mergeMedia: true, // controls `@media` merging; defaults to true
-                                mergeNonAdjacentRules: false, // controls non-adjacent rule merging; defaults to true
+                                mergeNonAdjacentRules: true, // controls non-adjacent rule merging; defaults to true
                                 mergeSemantically: false, // controls semantic merging; defaults to false
-                                overrideProperties: false, // controls property overriding based on understandability; defaults to true
+                                overrideProperties: true, // controls property overriding based on understandability; defaults to true
                                 removeEmpty: true, // controls removing empty rules and nested blocks; defaults to `true`
                                 reduceNonAdjacentRules: true, // controls non-adjacent rule reducing; defaults to true
                                 removeDuplicateFontRules: true, // controls duplicate `@font-face` removing; defaults to true
