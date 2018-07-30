@@ -137,7 +137,7 @@ Crittr({
     // restCss is the rest remaining after excluding the criticalCss.
     // You can start including it directly as a defered css without 
     // any need to calculate it on your own
-        console.log(criticalCss);  
+        console.log(critical);  
 });
 ``` 
 
