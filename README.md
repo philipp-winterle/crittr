@@ -165,8 +165,8 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for [puppeteer object](#puppeteer-options). |
 | printBrowserConsole | Boolean | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false |
 | dropKeyframes | Boolean | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false |
-| keepSelectors | Array | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. Default: [] |
-| removeSelectors: | Array | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. Default: [] |
+| keepSelectors | Array | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: [] |
+| removeSelectors: | Array | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: [] |
 | blockRequests | Array | Optional. Some of the requests made by pages are an |
 
 ### Browser options
@@ -197,6 +197,28 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | chromePath | String | Optional. Path to other Chrome or Chromium executable/bin file to use. . Default: Default Chromium shipped with puppeteer |
 | headless: | Boolean | Optional. If set to false the browser will launch with GUI to be visible while processing. Default: true |
 
+## Wildcards
+You are already able to define the selectors to force keep or remove. With wildcards you can define a range of selectors to match against one entry in force selectors. The wildcard symbol is the `%` character. It can put at the beginning or end of a string. Take care of whitespaces between the selector string and the `%` as it will count as a character. Let's have a quick example:
+
+```javascript
+    const {critical, rest} = await Crittr({
+        urls: urls,
+        css:  css,
+        keepSelectors:   [
+            ".test %"
+        ]
+    });
+```
+
+This keepSelectors options will match every selector that begins with `.test` and has no further selectors attached. Means `.test.test2`wouldn't match because there is a whitespace in there. But it will match `.test .test2 .test3`.  Also this example wouldn't match selectors like this:
+
+```css
+.pre .test .test2 {} /* no match */
+.pre.test .test2 {} /* no match */
+.test .test2 {} /* match */
+.test.test2 {} /* no match */
+.test .test2:before {} /* match */
+```
 
 ## FAQ :confused:
  - Why do I need to put my css file in when I only want to extract the critical css?
@@ -207,7 +229,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 ## Upcoming :trumpet:
 
 - [ ] :star: cookie includes
-- [ ] :star: wildcards
+- [x] :star: wildcards
 - [ ] :grey_question: positioning of critical css rules 
 - [x] :+1: compress output option
 - [x] :fire: return of the remaining css aswell

@@ -27,7 +27,10 @@ module.exports = () => {
                         height: 1080
                     },
                     keepSelectors:   [
-                        ".forceInclude"
+                        ".forceInclude",
+                        "%.wildcard_test_1 %",
+                        ".wildcard_test_2 %",
+                        ".wildcard_test_3 %"
                     ],
                     removeSelectors: [
                         ".forceExclude"

@@ -532,8 +532,6 @@ class Crittr {
             let criticalAstObj       = null;
             let restAstObj           = null;
 
-            // TODO: handle goto errors with retry
-
             const getPage = async () => {
                 return new Promise((resolve, reject) => {
                     try {
@@ -645,6 +643,7 @@ class Crittr {
 
             // Go to destination page
             if (hasError === false) {
+                // TODO: handle goto errors with retry
                 try {
                     debug("evaluateUrl - Navigating page to " + url);
                     await page.goto(url, {

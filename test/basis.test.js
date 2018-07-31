@@ -73,7 +73,8 @@ describe('Basis Test', () => {
                 "h1",
                 ".vendor_prefix",
                 ".pseudo-selector:after",
-                ".pseudo-selector::before"
+                ".pseudo-selector::before",
+                ".pre .wildcard_test_1 .post"
             ],
             media1024: [
                 ".standard-selector",
@@ -95,7 +96,9 @@ describe('Basis Test', () => {
                 ".forceExclude",
                 ".no-atf-css-default",
                 ":root .not-existing-selector",
-                "h2,h3,h4,h5,h6"
+                "h2,h3,h4,h5,h6",
+                ".pre .wildcard_test_2 .post",
+                ".wildcard_test_3.space"
             ],
             media1024: [
                 ".forceExclude",
@@ -282,5 +285,6 @@ describe('Basis Test', () => {
             const exists = criticalSelectorRules.has("font-face");
             expect(exists).toBeTruthy();
         });
+
     });
 });
