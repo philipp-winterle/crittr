@@ -1,6 +1,6 @@
 {
   "name": "crittr",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Crittr is a high performance critical css extraction library with a multiple url support.",
   "author": "Philipp Winterle",
   "license": "GPL-3.0",
@@ -62,7 +62,7 @@
   ],
   "husky": {
     "hooks": {
-      "pre-commit": "npm run build && npm test && git add lib/*"
+      "pre-commit": "npm run build && npm test && git status && git add lib/*"
     }
   }
 }
