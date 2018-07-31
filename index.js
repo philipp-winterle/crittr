@@ -19,10 +19,18 @@ const Crittr       = require(path.join(__dirname, pathToCrittr, 'classes', 'Crit
 module.exports = (options) => {
     return new Promise(async (resolve, reject) => {
         log.time("Crittr Run");
-        const crttr   = new Crittr(options);
+
+        let crittr;
         let resultObj = {critical: null, rest: null};
+
         try {
-            (resultObj = await crttr.run());
+            crittr   = new Crittr(options);
+        } catch (err) {
+            reject(err);
+        }
+
+        try {
+            (resultObj = await crittr.run());
         } catch (err) {
             reject(err);
         }

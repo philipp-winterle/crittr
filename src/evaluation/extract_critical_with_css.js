@@ -114,12 +114,29 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors, removeSelectors}) => {
          */
         const isPurePseudo = selector => selector.startsWith(":") && selector.match(PSEUDO_EXCLUDED_REGEX) === null;
 
+        /**
+         * Creates a regex out of a wildcard selector. Returns the normal regex for a non wildcard selector
+         *
+         * @param {string} selector
+         * @returns {RegExp} {RegExp}
+         */
+        const getRegexOfSelector = selector => {
+            selector = "^" + selector.replace(/\./g, "\\.").replace(/%/g, ".*") + "$";
+            return new RegExp(selector, "gm");
+        };
+
         const isSelectorForceIncluded = selector => {
-            return keepSelectors.includes(selector);
+            return keepSelectors.includes(selector) || keepSelectors.some( tmpSel => {
+                const selectorWcRegex = getRegexOfSelector(tmpSel); // transform wildcards into regex
+                return selectorWcRegex.test(selector);
+            });
         };
 
         const isSelectorForceExcluded = selector => {
-            return removeSelectors.includes(selector);
+            return removeSelectors.includes(selector) || removeSelectors.some( tmpSel => {
+                const selectorWcRegex = getRegexOfSelector(tmpSel); // transform wildcards into regex
+                return selectorWcRegex.test(selector);
+            });
         };
 
         const isElementAboveTheFold = (element) => {

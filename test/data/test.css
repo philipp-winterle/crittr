@@ -2,6 +2,8 @@
 
 @font-face {
     font-family: Keep Critical;
+    font-style: normal;
+    font-weight: 400
 }
 
 .standard-selector {
@@ -80,6 +82,12 @@ div {
     content: "should not be included";
 }
 
+@font-face {
+    font-family: Keep Critical;
+    font-style: normal;
+    font-weight: 400
+}
+
 h1, h2, h3, h4, h5, h6 {
     font-size: 22px;
 }
@@ -106,6 +114,17 @@ h1, h2, h3, h4, h5, h6 {
     content: "should only have multi-selector and multi-selector-1 in criticalcss";
 }
 
+.pre .wildcard_test_1 .post {
+    content: "wildcard test [not included in HTML] - SHOULD BE INCLUDED";
+}
+
+.pre .wildcard_test_2 .post {
+    content: "wildcard test [not included in HTML] - SHOULD NOT BE INCLUDED";
+}
+
+.wildcard_test_3.space {
+    content: "SHOULD NOT BE INCLUDED"
+}
 
 @media all and (min-width: 1024px) {
     .standard-selector {

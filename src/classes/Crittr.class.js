@@ -115,7 +115,8 @@ class Crittr {
                 log.error(message);
             });
             // Exit process when options are invalid
-            process.exit(1);
+            throw new Error("crittr stopped working. See errors above.")
+
         }
     }
 
@@ -129,9 +130,15 @@ class Crittr {
         // Check url
         if (!Array.isArray(this.options.urls)) {
             errors.push({
-                message: "Url not valid"
+                message: "Urls not an Array"
             });
         }
+
+        if (Array.isArray(this.options.urls) && this.options.urls.length === 0) {
+            console.log("FEHLER")
+            errors.push(new Error("NO URLs to check. Insert at least one url in the urls option!"));
+        }
+
 
         if (typeof this.options.css !== "string") {
             errors.push({
@@ -364,7 +371,6 @@ class Crittr {
                     // Create the Rule Maps for further iteration
                     debug("getCriticalCssFromUrls - Merging multiple atf ast objects. Size: " + criticalAstSets.size);
                     let atfRuleMap = new Map();
-                    let criticalcss = "";
                     for (let astObj of criticalAstSets) {
                         try {
                             // Merge all extracted ASTs into a final one
@@ -424,27 +430,27 @@ class Crittr {
                             ieFilters: false, // controls keeping IE `filter` / `-ms-filter`
                             iePrefixHack: false, // controls keeping IE prefix hack
                             ieSuffixHack: false, // controls keeping IE suffix hack
-                            merging: false, // controls property merging based on understandability
+                            merging: true, // controls property merging based on understandability
                             shorterLengthUnits: false, // controls shortening pixel units into `pc`, `pt`, or `in` units
-                            spaceAfterClosingBrace: false, // controls keeping space after closing brace - `url() no-repeat` into `url()no-repeat`
-                            urlQuotes: false, // controls keeping quoting inside `url()`
+                            spaceAfterClosingBrace: true, // controls keeping space after closing brace - `url() no-repeat` into `url()no-repeat`
+                            urlQuotes: true, // controls keeping quoting inside `url()`
                             zeroUnits: false // controls removal of units `0` value
                         },
                         selectors: {
                             adjacentSpace: false, // controls extra space before `nav` element
-                            ie7Hack: false, // controls removal of IE7 selector hacks, e.g. `*+html...`
-                            mergeLimit: 8191, // controls maximum number of selectors in a single rule (since 4.1.0)
+                            ie7Hack: true, // controls removal of IE7 selector hacks, e.g. `*+html...`
+                            mergeLimit: 1000, // controls maximum number of selectors in a single rule (since 4.1.0)
                             multiplePseudoMerging: false // controls merging of rules with multiple pseudo classes / elements (since 4.1.0)
                         },
                         level: {
                             1: {
                                 all: false,
                                 cleanupCharsets: true, // controls `@charset` moving to the front of a stylesheet; defaults to `true`
-                                removeWhitespace: true // controls removing unused whitespace; defaults to `true`
+                                removeWhitespace: false // controls removing unused whitespace; defaults to `true`
                             },
                             2: {
                                 mergeAdjacentRules: true, // controls adjacent rules merging; defaults to true
-                                mergeIntoShorthands: true, // controls merging properties into shorthands; defaults to true
+                                mergeIntoShorthands: false, // controls merging properties into shorthands; defaults to true
                                 mergeMedia: true, // controls `@media` merging; defaults to true
                                 mergeNonAdjacentRules: true, // controls non-adjacent rule merging; defaults to true
                                 mergeSemantically: false, // controls semantic merging; defaults to false
@@ -525,8 +531,6 @@ class Crittr {
             let criticalSelectorsMap = new Map();
             let criticalAstObj       = null;
             let restAstObj           = null;
-
-            // TODO: handle goto errors with retry
 
             const getPage = async () => {
                 return new Promise((resolve, reject) => {
@@ -614,6 +618,10 @@ class Crittr {
 //                        startedRequests.splice(startedRequests.indexOf(request.url()), 1);
 //                    });
 
+                    page.on("error", err => {
+                        hasError = err;
+                    });
+
                     await page.emulate({
                         viewport:  {
                             width:             deviceOptions.width,
@@ -635,6 +643,7 @@ class Crittr {
 
             // Go to destination page
             if (hasError === false) {
+                // TODO: handle goto errors with retry
                 try {
                     debug("evaluateUrl - Navigating page to " + url);
                     await page.goto(url, {
