@@ -6,5 +6,6 @@ module.exports = {
     roots: [
         "./test"
     ],
-    testMatch: ["**/test/**/*.test.js?(x)"]
+    testMatch: ["**/test/**/*.test.js?(x)"],
+    testURL: 'http://localhost'
 };
