@@ -121,7 +121,7 @@ module.exports = ({sourceAst, loadTimeout, keepSelectors, removeSelectors}) => {
          * @returns {RegExp} {RegExp}
          */
         const getRegexOfSelector = selector => {
-            selector = "^" + selector.replace(/\./g, "\\.").replace(/%/g, ".*") + "$";
+            selector = "^" + selector.replace(/([.*><+~])/g, "\\$1").replace(/%/g, ".*") + "$";
             return new RegExp(selector, "gm");
         };
 
