@@ -165,6 +165,8 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | puppeteer | Object | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for [puppeteer object](#puppeteer-options). |
 | printBrowserConsole | Boolean | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false |
 | dropKeyframes | Boolean | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false |
+| takeScreenshots | Boolean | Optional. If set a screenshot is taken for every url processed. Default: false |
+| screenshotPath | String | Optional. The path the screenshots will be saved to. Default: "." (execution path) |
 | keepSelectors | Array | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: [] |
 | removeSelectors: | Array | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: [] |
 | blockRequests | Array | Optional. Some of the requests made by pages are an |
@@ -230,7 +232,6 @@ This keepSelectors options will match every selector that begins with `.test` an
 
 - [ ] :star: cookie includes
 - [x] :star: wildcards
-- [ ] :grey_question: positioning of critical css rules 
 - [x] :+1: compress output option
 - [x] :fire: return of the remaining css aswell
 - [x] :grey_question: multi selector partial matches
