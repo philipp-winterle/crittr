@@ -20,6 +20,7 @@ module.exports = {
     TIMEOUT:                 30000,
     PAGE_LOAD_TIMEOUT:       2000,
     PAGE_RENDER_TIMEOUT:     300,
+    PAGE_SCREENSHOT:         false,
     OUTPUT_REMAINING_CSS:    true,
 
     // CODE BASED
