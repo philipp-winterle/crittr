@@ -2,6 +2,7 @@
 
 const fs              = require('fs-extra');
 const util            = require('util');
+const path            = require('path');
 const readFilePromise = util.promisify(fs.readFile);
 const debug           = require('debug')("Crittr Class");
 const log             = require('signale');
@@ -78,6 +79,8 @@ class Crittr {
             },
             printBrowserConsole: DEFAULTS.PRINT_BROWSER_CONSOLE,
             dropKeyframes:       DEFAULTS.DROP_KEYFRAMES,
+            takeScreenshots:     DEFAULTS.PAGE_SCREENSHOT,
+            screenshotPath:      path.join("."),
             keepSelectors:       [],
             removeSelectors:     [],
             blockRequests:       [
@@ -107,6 +110,8 @@ class Crittr {
             }
         }
 
+
+
         // Validate some of the options like url and css
         const optionsErrors = this.validateOptions();
 
@@ -135,7 +140,6 @@ class Crittr {
         }
 
         if (Array.isArray(this.options.urls) && this.options.urls.length === 0) {
-            console.log("FEHLER")
             errors.push(new Error("NO URLs to check. Insert at least one url in the urls option!"));
         }
 
@@ -143,6 +147,12 @@ class Crittr {
         if (typeof this.options.css !== "string") {
             errors.push({
                 message: "css not valid. Expected string got " + typeof this.options.css
+            });
+        }
+
+        if (typeof this.options.screenshotPath !== "string") {
+            errors.push({
+                message: "screenshotPath needs to be a string"
             });
         }
         return errors;
@@ -663,7 +673,14 @@ class Crittr {
             if (hasError === false) {
                 try {
                     debug("evaluateUrl - Extracting critical selectors");
-                    await page.waitFor(250); // Needed because puppeteer sometimes isnt able to handle quick tab openings
+                    await page.waitFor(250); // Needed because puppeteer sometimes isn't able to handle quick tab openings
+                    if (this.options.takeScreenshots === true) {
+                        const screenName = url.replace(/[^\w\s]/gi, "_") + ".png";
+                        await page.screenshot({
+                            path: path.join(this.options.screenshotPath, screenName),
+                            type: "png"
+                        });
+                    }
                     criticalSelectorsMap = new Map(await page.evaluate(extractCriticalCss_script, {
                         sourceAst:       sourceAst,
                         loadTimeout:     this.options.pageLoadTimeout,
