@@ -11,7 +11,7 @@ const merge = require("deepmerge");
 const Queue = require("run-queue");
 const puppeteer = require("puppeteer");
 const devices = puppeteer.devices;
-const mqpacker = require("css-mqpacker");
+const mqpacker = require("@hail2u/css-mqpacker");
 const sortCSSmq = require("sort-css-media-queries");
 
 const CleanCSS = require("clean-css");
