@@ -722,7 +722,7 @@ class Crittr {
       if (hasError === false) {
         try {
           debug("evaluateUrl - Extracting critical selectors");
-          await page.waitFor(250); // Needed because puppeteer sometimes isn't able to handle quick tab openings
+          await page.waitForTimeout(250); // Needed because puppeteer sometimes isn't able to handle quick tab openings
           if (this.options.takeScreenshots === true) {
             const screenName = url.replace(/[^\w\s]/gi, "_") + ".png";
             await page.screenshot({
