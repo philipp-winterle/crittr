@@ -708,3 +708,6 @@ ij_yaml_spaces_within_brackets = true
 # Handle minified files extra
 [*.min.*]
 insert_final_newline = false
+
+[.gitignore]
+insert_final_newline = false
