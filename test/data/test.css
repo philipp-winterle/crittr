@@ -1,9 +1,14 @@
 @charset "UTF-8";
 
 @font-face {
-    font-family: Keep Critical;
+    font-family: "Keep Critical";
+    src: url("ONLY TEST");
+}
+
+body {
+    font-size: 1em;
+    font-weight: 400;
     font-style: normal;
-    font-weight: 400
 }
 
 .standard-selector {
@@ -24,11 +29,11 @@ div {
 }
 
 .child-selector > * {
-    color: brown
+    color: brown;
 }
 
 .sibling-selector + .sibling {
-    color: green
+    color: green;
 }
 
 .sibling-general-selector ~ .sibling {
@@ -64,7 +69,7 @@ div {
 
 .multi-selector,
 .forceInclude,
-.multi-selector-not-exists{
+.multi-selector-not-exists {
     content: "forceIncludeMultiSelector";
 }
 
@@ -74,7 +79,7 @@ div {
 
 .multi-selector,
 .forceExclude,
-.multi-selector-1{
+.multi-selector-1 {
     content: "forceExcludeMultiSelector";
 }
 
@@ -82,13 +87,12 @@ div {
     content: "should not be included";
 }
 
-@font-face {
-    font-family: Keep Critical;
-    font-style: normal;
-    font-weight: 400
-}
-
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-size: 22px;
 }
 
@@ -123,23 +127,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .wildcard_test_3.space {
-    content: "SHOULD NOT BE INCLUDED"
+    content: "SHOULD NOT BE INCLUDED";
 }
 
 @media all and (min-width: 1024px) {
     .standard-selector {
         color: black;
-        content: ".standard-selector 1024"
+        content: ".standard-selector 1024";
     }
 
     #id-selector {
         color: blue;
-        content: "#id-selector 1024"
+        content: "#id-selector 1024";
     }
 
     div {
         color: darkgrey;
-        content: "div 1024"
+        content: "div 1024";
     }
 
     .pseudo-selector:after {
@@ -187,22 +191,27 @@ h1, h2, h3, h4, h5, h6 {
     .no-atf-css-default {
         color: gold;
     }
+
+    .standard-selector {
+        color: black;
+        content: ".standard-selector 800";
+    }
 }
 
 @media all and (min-width: 800px) {
     .standard-selector {
         color: black;
-        content: ".standard-selector 800"
+        content: ".standard-selector 800";
     }
 
     #id-selector {
         color: blue;
-        content: "#id-selector 800"
+        content: "#id-selector 800";
     }
 
     div {
         color: darkgrey;
-        content: "div 800"
+        content: "div 800";
     }
 
     .no-atf-css-default-800 {
@@ -221,6 +230,10 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 1337px) {
     .no-selector {
         content: "just no";
+    }
+    .standard-selector {
+        color: black;
+        content: ".standard-selector 800";
     }
 }
 
