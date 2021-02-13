@@ -29,6 +29,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "@types/jest": "^26.0.20",
     "chalk": "^4.1.0",
     "clean-css": "^4.2.3",
     "css": "^3.0.0",
