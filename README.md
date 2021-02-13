@@ -1,5 +1,6 @@
 # crittr
 
+![CI Build Status](https://github.com/hummal/crittr/workflows/Node.js%20CI/badge.svg?branch=master)
 ![GitHub release](https://img.shields.io/github/release/hummal/crittr.svg?style=flat-square)
 ![npm](https://img.shields.io/npm/dt/crittr.svg?style=flat-square&label=NPM+Downloads)
 ![Github Releases](https://img.shields.io/github/downloads/hummal/crittr/total.svg?style=flat-square&label=Github+Downloads)
