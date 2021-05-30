@@ -1,15 +1,21 @@
 "use strict";
 
-const log          = require("signale");
-const path         = require("path");
-const NODE_ENV     = process.env.NODE_ENV || "production";
+const log = require("signale");
+const path = require("path");
+const NODE_ENV = process.env.NODE_ENV || "production";
 let IS_NPM_PACKAGE = false;
 try {
     IS_NPM_PACKAGE = !!require.resolve("crittr");
 } catch (e) {}
 
-const pathToCrittr = NODE_ENV === "development" && !IS_NPM_PACKAGE ? "src" : "lib";
-const Crittr       = require(path.join(__dirname, pathToCrittr, 'classes', 'Crittr.class.js'));
+const pathToCrittr =
+    NODE_ENV === "development" && !IS_NPM_PACKAGE ? "lib" : "lib"; // Only keep for later browser support?
+const Crittr = require(path.join(
+    __dirname,
+    pathToCrittr,
+    "classes",
+    "Crittr.class.js"
+));
 
 /**
  *
@@ -21,16 +27,16 @@ module.exports = (options) => {
         log.time("Crittr Run");
 
         let crittr;
-        let resultObj = {critical: null, rest: null};
+        let resultObj = { critical: null, rest: null };
 
         try {
-            crittr   = new Crittr(options);
+            crittr = new Crittr(options);
         } catch (err) {
             reject(err);
         }
 
         try {
-            (resultObj = await crittr.run());
+            resultObj = await crittr.run();
         } catch (err) {
             reject(err);
         }

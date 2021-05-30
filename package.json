@@ -46,15 +46,11 @@
     },
     "devDependencies": {
         "cross-env": "^7.0.3",
-        "gulp": "^4.0.2",
-        "gulp-clean": "^0.4.0",
-        "gulp-uglify-es": "^2.0.0",
         "husky": "^4.3.8",
         "jest": "^26.6.3"
     },
     "scripts": {
-        "test": "./node_modules/.bin/cross-env NODE_ENV=development jest --bail",
-        "build": "gulp"
+        "test": "./node_modules/.bin/cross-env NODE_ENV=development jest --bail"
     },
     "files": [
         "docs",
@@ -63,7 +59,7 @@
     ],
     "husky": {
         "hooks": {
-            "pre-commit": "npm run build && npm test && git add lib/**/*"
+            "pre-commit": "npm test"
         }
     }
 }
