@@ -1,8 +1,10 @@
 "use strict";
+global.crittr_project_path = __dirname;
 
 const log = require("signale");
 const path = require("path");
 const NODE_ENV = process.env.NODE_ENV || "production";
+
 let IS_NPM_PACKAGE = false;
 try {
     IS_NPM_PACKAGE = !!require.resolve("crittr");
