@@ -1,17 +1,19 @@
 const Critter = require("./../index");
 const fs = require("fs-extra");
 const path = require("path");
+require("./server");
 
 const rootDir = path.join(__dirname, "..");
 
 const testData = {
     urls: [
-        "http://localhost/test/data/test.html?1",
-        "http://localhost/test/data/test.html?2",
-        "http://localhost/test/data/test.html?3",
-        "http://localhost/test/data/test.html?4"
+        "http://localhost:3000/test/data/test.html?1",
+        "http://localhost:3000/test/data/test.html?2",
+        "http://localhost:3000/test/data/test.html?3",
+        "http://localhost:3000/test/data/test.html?4"
     ]
 };
+
 
 module.exports = () => {
     return new Promise(async (resolve, reject) => {
