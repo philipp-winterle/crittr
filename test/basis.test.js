@@ -1,4 +1,3 @@
-const Critter = require("./../index");
 const fs = require("fs-extra");
 const path = require("path");
 const css = require("css");
