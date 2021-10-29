@@ -1,16 +1,17 @@
 {
-    "name": "crittr",
+    "name": "@timonbandit/crittr",
     "version": "1.4.1",
     "description": "Crittr is a high performance critical css extraction library with a multiple url support.",
     "author": "Philipp Winterle",
     "license": "GPL-3.0",
+    "private": false,
     "bugs": {
         "url": "https://github.com/timonbandit/crittr/issues"
     },
     "homepage": "https://github.com/timonbandit/crittr",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/timonbandit/crittr"
+        "url": "git+https://github.com/timonbandit/crittr.git"
     },
     "keywords": [
         "critical",
@@ -50,7 +51,7 @@
         "jest": "^27.0.6"
     },
     "scripts": {
-        "test": "./node_modules/.bin/cross-env NODE_ENV=development jest --bail --verbose",
+        "test": "cross-env NODE_ENV=development jest --bail --verbose",
         "build": "echo 'build is not configured for package. Skipping.'",
         "prepare": "husky install"
     },
@@ -63,5 +64,11 @@
         "hooks": {
             "pre-commit": "npm test"
         }
+    },
+    "directories": {
+        "doc": "docs",
+        "example": "examples",
+        "lib": "lib",
+        "test": "test"
     }
 }
