@@ -12,12 +12,12 @@
 
 #### Feature Facts
 
-- Amazing speed
-- Designed to be used by power users as a nodejs module (no useless browser usage)
-- :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
-- When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
-- Ongoing maintenance because of being used in enterprise environment
-- Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
+-   Amazing speed
+-   Designed to be used by power users as a nodejs module (no useless browser usage)
+-   :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
+-   When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
+-   Ongoing maintenance because of being used in enterprise environment
+-   Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
 
 ## Performance
 
@@ -33,10 +33,10 @@ There are some other libraries out there dealing with the topic of extracting th
 
 ### Requirements
 
-- minimum nodejs > 7.6 | recommended nodejs 8+
-  - async/await
-  - Promises
-- puppeteer dependecies on UNIX bases OS (including MacOSX)
+-   minimum nodejs > 12 | recommended nodejs 16+
+    -   async/await
+    -   Promises
+-   puppeteer dependecies on UNIX bases OS (including MacOSX)
 
 > Due to some dependencies of crittr you may need to install some additional software.
 > Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
@@ -60,50 +60,50 @@ The crittr module has the expects an object as input parameter and returns an ar
 ```javascript
 // async/await
 (async () => {
-  const { critical, rest } = await crittr(options);
+    const { critical, rest } = await crittr(options);
 })();
 
 // Promise
 crittr(options).then(({ critical, rest }) => {
-  // handle css
+    // handle css
 });
 ```
 
 ##### Basic
 
 ```javascript
-const Crittr = require("crittr");
+const Crittr = require('crittr');
 
 Crittr({
-  urls: ["https://github.com/"],
-  css: `.header-logo-invertocat {
+    urls: ['https://github.com/'],
+    css: `.header-logo-invertocat {
             margin: -1px 15px -1px -2px;
             color: #fff;
             white-space: nowrap;
         }`,
-  device: {
-    width: 1920,
-    height: 1080,
-  },
+    device: {
+        width: 1920,
+        height: 1080,
+    },
 })
-  .then(({ critical, rest }) => {
-    console.log(critical);
-  })
-  .catch((err) => {
-    console.error(err);
-  });
+    .then(({ critical, rest }) => {
+        console.log(critical);
+    })
+    .catch(err => {
+        console.error(err);
+    });
 ```
 
 As you can also read in the [options](#options) section there is the possibility to use a css file as a path instead of a string. If the path provided ends with `.css` it is treated as a file path.
 
 ```javascript
-const Crittr = require("crittr");
+const Crittr = require('crittr');
 
 Crittr({
-  urls: ["https://github.com/"],
-  css: "./test/data/test.css",
+    urls: ['https://github.com/'],
+    css: './test/data/test.css',
 }).then(({ critical, rest }) => {
-  console.log(critical);
+    console.log(critical);
 });
 ```
 
@@ -111,36 +111,36 @@ Due to the fact, that crittr is returning a **Promise<String>** you can also use
 
 ```javascript
 (async () => {
-  const Crittr = require("crittr");
-  try {
-    const { critical, rest } = await Crittr({
-      urls: ["https://github.com/"],
-      css: "./test/data/test.css",
-    });
-  } catch (err) {
-    console.error(err);
-  }
+    const Crittr = require('crittr');
+    try {
+        const { critical, rest } = await Crittr({
+            urls: ['https://github.com/'],
+            css: './test/data/test.css',
+        });
+    } catch (err) {
+        console.error(err);
+    }
 })();
 ```
 
 ##### Basic - Whithout css
 
 You can skip adding CSS. Crittr will collect all styles (external and inline) from the first url in your list as base CSS.
+
 ```javascript
 Crittr({
-    urls:   [
-        "https://github.com"
-    ],
+    urls: ['https://github.com'],
     device: {
-        width:  1920,
-        height: 1080
-    }
-}).then( ({critical, rest}) => {
-    console.log(critical);
-}).catch(err => {
-    console.error(err);
-});
-
+        width: 1920,
+        height: 1080,
+    },
+})
+    .then(({ critical, rest }) => {
+        console.log(critical);
+    })
+    .catch(err => {
+        console.error(err);
+    });
 ```
 
 ##### Advanced - Multiple urls
@@ -148,24 +148,19 @@ Crittr({
 To use the full power of crittr and get the most of the performance advantage you should pass in multiple urls. As of the fact that the most websites use one css file for multiple pages this is the ultimate way to get the critical css for all of them!
 
 ```javascript
-const Crittr = require("crittr");
+const Crittr = require('crittr');
 
-const urls = [
-  "https://example.com/page1",
-  "https://example.com/page2",
-  "https://example.com/about",
-  "https://example.com/shop",
-];
+const urls = ['https://example.com/page1', 'https://example.com/page2', 'https://example.com/about', 'https://example.com/shop'];
 
 Crittr({
-  urls: urls,
-  css: "./example.com/css/main.css",
+    urls: urls,
+    css: './example.com/css/main.css',
 }).then(({ critical, rest }) => {
-  // criticalCss contains all the above the fold css
-  // restCss is the rest remaining after excluding the criticalCss.
-  // You can start including it directly as a defered css without
-  // any need to calculate it on your own
-  console.log(critical);
+    // criticalCss contains all the above the fold css
+    // restCss is the rest remaining after excluding the criticalCss.
+    // You can start including it directly as a defered css without
+    // any need to calculate it on your own
+    console.log(critical);
 });
 ```
 
@@ -234,9 +229,9 @@ You are already able to define the selectors to force keep or remove. With wildc
 
 ```javascript
 const { critical, rest } = await Crittr({
-  urls: urls,
-  css: css,
-  keepSelectors: [".test %"],
+    urls: urls,
+    css: css,
+    keepSelectors: ['.test %'],
 });
 ```
 
@@ -257,20 +252,20 @@ This keepSelectors options will match every selector that begins with `.test` an
 
 ## FAQ :confused:
 
-- Why do I need to put my css file in when I only want to extract the critical css?
-  You don't need to but if you don't set your css file as an option you may not receive all vendor prefixes you may expect. This is due testing with only one browser engine which drop other prefixes.
-- After including the remaining css aswell my page starts looking different. Why is that?
-  If you progress more than 1 url at the same time crittr can not determinate where a rule has to be positioned in the whole css to not get in conflict with other rules overwriting them. You have to write clean css to prevent such an behaviour. Overwriting rules should always have longer selectors than the rules they are overwriting to raise priority.
+-   Why do I need to put my css file in when I only want to extract the critical css?
+    You don't need to but if you don't set your css file as an option you may not receive all vendor prefixes you may expect. This is due testing with only one browser engine which drop other prefixes.
+-   After including the remaining css aswell my page starts looking different. Why is that?
+    If you progress more than 1 url at the same time crittr can not determinate where a rule has to be positioned in the whole css to not get in conflict with other rules overwriting them. You have to write clean css to prevent such an behaviour. Overwriting rules should always have longer selectors than the rules they are overwriting to raise priority.
 
 ## Upcoming :trumpet:
 
-- [ ] :star: cookie includes
-- [x] :star: wildcards
-- [x] :+1: compress output option
-- [x] :fire: return of the remaining css aswell
-- [x] :grey_question: multi selector partial matches
-- [x] :tea: returning of remaining css aswell (optional)
-- [x] :clock2: performance boost for large css
+-   [ ] :star: cookie includes
+-   [x] :star: wildcards
+-   [x] :+1: compress output option
+-   [x] :fire: return of the remaining css aswell
+-   [x] :grey_question: multi selector partial matches
+-   [x] :tea: returning of remaining css aswell (optional)
+-   [x] :clock2: performance boost for large css
 
 ## Known Bugs :shit:
 
