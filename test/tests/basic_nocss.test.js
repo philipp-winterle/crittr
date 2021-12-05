@@ -1,67 +1,77 @@
-const Critter = require("./../index");
 const fs = require("fs-extra");
 const path = require("path");
 const css = require("css");
 
-const rootDir = path.join(__dirname, "..");
+const rootDir = path.join(__dirname, "..", "..");
 const Rule = require(path.join(rootDir, "lib/classes/Rule.class"));
 
-describe("Basis Test", () => {
+/**
+ *
+ * @param {CSSRuleList} astRules
+ * @returns Map
+ */
+const getAstRules = (astRules) => {
+    const criticalSelectorRules = new Map();
+    // Gather all Selectors of result CSS
+    for (const rule of astRules) {
+        if (rule.type === "rule") {
+            const selectors = rule.selectors.join(",");
+            if (criticalSelectorRules.has(selectors)) {
+                let count = criticalSelectorRules.get(selectors);
+                criticalSelectorRules.set(selectors, ++count);
+            } else {
+                criticalSelectorRules.set(selectors, 1);
+            }
+        } else if (rule.type === "media") {
+            const rules = rule.rules;
+            const mediaSelector = rule.media;
+
+            for (const rule of rules) {
+                if (rule.type === "rule") {
+                    const pairedSelector =
+                        mediaSelector + "===" + rule.selectors.join(",");
+                    if (criticalSelectorRules.has(pairedSelector)) {
+                        let count = criticalSelectorRules.get(pairedSelector);
+                        criticalSelectorRules.set(pairedSelector, ++count);
+                    } else {
+                        criticalSelectorRules.set(pairedSelector, 1);
+                    }
+                } else {
+                    console.warn(
+                        "Unkown rule type -> not recognized: ",
+                        rule.type
+                    );
+                }
+            }
+        } else {
+            if (criticalSelectorRules.has(rule.type)) {
+                let count = criticalSelectorRules.get(rule.type);
+                criticalSelectorRules.set(rule.type, ++count);
+            } else {
+                criticalSelectorRules.set(rule.type, 1);
+            }
+        }
+    }
+
+    return criticalSelectorRules;
+};
+
+describe("Basic NoCSS Test", () => {
     describe("Check Results", () => {
         const resultCSS = fs.readFileSync(
-            path.join(rootDir, "test", "test_result.css"),
+            path.join(rootDir, "test", "test_result_noCss.css"),
             "utf8"
         );
+
         const remainingCSS = fs.readFileSync(
-            path.join(rootDir, "test", "test_result_remaining.css"),
+            path.join(rootDir, "test", "test_result_noCss_remaining.css"),
             "utf8"
         );
+
         const resultAstRules = css.parse(resultCSS).stylesheet.rules;
         const remainingAstRules = css.parse(remainingCSS).stylesheet.rules;
 
-        const criticalSelectorRules = new Map();
-
-        // Gather all Selectors of result CSS
-        for (const rule of resultAstRules) {
-            if (rule.type === "rule") {
-                const selectors = rule.selectors.join(",");
-                if (criticalSelectorRules.has(selectors)) {
-                    let count = criticalSelectorRules.get(selectors);
-                    criticalSelectorRules.set(selectors, ++count);
-                } else {
-                    criticalSelectorRules.set(selectors, 1);
-                }
-            } else if (rule.type === "media") {
-                const rules = rule.rules;
-                const mediaSelector = rule.media;
-
-                for (const rule of rules) {
-                    if (rule.type === "rule") {
-                        const pairedSelector =
-                            mediaSelector + "===" + rule.selectors.join(",");
-                        if (criticalSelectorRules.has(pairedSelector)) {
-                            let count =
-                                criticalSelectorRules.get(pairedSelector);
-                            criticalSelectorRules.set(pairedSelector, ++count);
-                        } else {
-                            criticalSelectorRules.set(pairedSelector, 1);
-                        }
-                    } else {
-                        console.warn(
-                            "Unkown rule type -> not recognized: ",
-                            rule.type
-                        );
-                    }
-                }
-            } else {
-                if (criticalSelectorRules.has(rule.type)) {
-                    let count = criticalSelectorRules.get(rule.type);
-                    criticalSelectorRules.set(rule.type, ++count);
-                } else {
-                    criticalSelectorRules.set(rule.type, 1);
-                }
-            }
-        }
+        const criticalSelectorRules = getAstRules(resultAstRules);
 
         // Selectors to search for
         const mustHaveSelectors = {
@@ -78,7 +88,7 @@ describe("Basis Test", () => {
                 ".forceInclude",
                 "h1",
                 ".vendor_prefix",
-                ".pseudo-selector:after",
+                ".pseudo-selector::after",
                 ".pseudo-selector::before",
                 ".pre .wildcard_test_1 .post",
             ],
@@ -87,7 +97,7 @@ describe("Basis Test", () => {
                 "#id-selector",
                 "div",
                 ".forceInclude",
-                ".pseudo-selector:after",
+                ".pseudo-selector::after",
                 ".pseudo-selector::before",
             ],
             media800: [".standard-selector", "#id-selector", ".forceInclude"],
@@ -143,7 +153,7 @@ describe("Basis Test", () => {
 
         test("MediaQuery 1024 selectors should be included", () => {
             const missingSelectors = [];
-            const selectorPrefix = "all and (min-width: 1024px)===";
+            const selectorPrefix = "(min-width: 1024px)===";
             for (const selector of mustHaveSelectors.media1024) {
                 if (!criticalSelectorRules.has(selectorPrefix + selector)) {
                     missingSelectors.push(selectorPrefix + selector);
@@ -154,7 +164,7 @@ describe("Basis Test", () => {
 
         test("MediaQuery 1024 selectors should NOT be included", () => {
             const falseIncludedSelectors = [];
-            const selectorPrefix = "all and (min-width: 1024px)===";
+            const selectorPrefix = "(min-width: 1024px)===";
             for (const selector of mustMissSelectors.media1024) {
                 if (criticalSelectorRules.has(selectorPrefix + selector)) {
                     falseIncludedSelectors.push(selectorPrefix + selector);
@@ -165,7 +175,7 @@ describe("Basis Test", () => {
 
         test("MediaQuery 800 selectors should be included", () => {
             const missingSelectors = [];
-            const selectorPrefix = "all and (min-width: 800px)===";
+            const selectorPrefix = "(min-width: 800px)===";
             for (const selector of mustHaveSelectors.media800) {
                 if (!criticalSelectorRules.has(selectorPrefix + selector)) {
                     missingSelectors.push(selectorPrefix + selector);
@@ -176,30 +186,13 @@ describe("Basis Test", () => {
 
         test("MediaQuery 800 selectors should NOT be included", () => {
             const falseIncludedSelectors = [];
-            const selectorPrefix = "all and (min-width: 800px)===";
+            const selectorPrefix = "(min-width: 800px)===";
             for (const selector of mustMissSelectors.media800) {
                 if (criticalSelectorRules.has(selectorPrefix + selector)) {
                     falseIncludedSelectors.push(selectorPrefix + selector);
                 }
             }
             expect(falseIncludedSelectors).toHaveLength(0);
-        });
-
-        test("Vendor prefixes still exists", () => {
-            const vendorPrefixRule = resultAstRules.find(
-                (rule) =>
-                    rule.type === "rule" &&
-                    rule.selectors.includes(".vendor_prefix")
-            );
-            const vendorPrefixExists =
-                vendorPrefixRule.declarations.some((declaration) =>
-                    declaration.property.startsWith("-webkit-")
-                ) === true &&
-                vendorPrefixRule.declarations.some((declaration) =>
-                    declaration.property.startsWith("-moz-")
-                ) === true;
-
-            expect(vendorPrefixExists).toBeTruthy();
         });
 
         test("There should not be duplicates of rules", () => {
