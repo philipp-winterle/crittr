@@ -1,27 +1,22 @@
-const Critter = require("../index");
-const fs = require("fs-extra");
-const path = require("path");
-const merge = require("deepmerge");
+const Critter = require('../index');
+const fs = require('fs-extra');
+const path = require('path');
+const merge = require('deepmerge');
 
-const rootDir = path.join(__dirname, "..");
-const staticServer = require("../lib/helper/localFileServer")(rootDir);
+const rootDir = path.join(__dirname, '..');
+const staticServer = require('../lib/helper/localFileServer')(rootDir);
 
 const testData = {
-    urls: [
-        "./test/data/test.html?1",
-        "./test/data/test.html?2",
-        "./test/data/test.html?3",
-        "./test/data/test.html?4",
-    ],
-    css: rootDir + "/test/data/test.css",
+    urls: ['./test/data/test.html?1', './test/data/test.html?2', './test/data/test.html?3', './test/data/test.html?4'],
+    css: rootDir + '/test/data/test.css',
 };
 
 const testDataNoCSS = {
     urls: [
-        "http://localhost:8000/test/data/test.html?1",
-        "http://localhost:8000/test/data/test.html?2",
-        "http://localhost:8000/test/data/test.html?3",
-        "http://localhost:8000/test/data/test.html?4",
+        'http://localhost:8000/test/data/test.html?1',
+        'http://localhost:8000/test/data/test.html?2',
+        'http://localhost:8000/test/data/test.html?3',
+        'http://localhost:8000/test/data/test.html?4',
     ],
 };
 
@@ -30,13 +25,8 @@ const defaultOptions = {
         width: 1920,
         height: 1080,
     },
-    keepSelectors: [
-        ".forceInclude",
-        "%.wildcard_test_1 %",
-        ".wildcard_test_2 %",
-        ".wildcard_test_3 %",
-    ],
-    removeSelectors: [".forceExclude"],
+    keepSelectors: ['.forceInclude', '%.wildcard_test_1 %', '.wildcard_test_2 %', '.wildcard_test_3 %'],
+    removeSelectors: ['.forceExclude'],
 };
 
 const standardOptions = merge(defaultOptions, {
@@ -54,39 +44,18 @@ module.exports = () => {
         const server = staticServer
             .listen(8000, async () => {
                 try {
-                    const { critical: defaultCss, rest: defaultRest } =
-                        await Critter(standardOptions);
+                    const { critical: defaultCss, rest: defaultRest } = await Critter(standardOptions);
 
-                    fs.writeFileSync(
-                        path.join(rootDir, "./test/test_result.css"),
-                        defaultCss,
-                        "utf-8"
-                    );
+                    fs.writeFileSync(path.join(rootDir, './test/test_result.css'), defaultCss, 'utf-8');
 
-                    fs.writeFileSync(
-                        path.join(rootDir, "./test/test_result_remaining.css"),
-                        defaultRest,
-                        "utf-8"
-                    );
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_remaining.css'), defaultRest, 'utf-8');
 
                     // Second Run for URL
-                    let { critical: noCssCritical, rest: noCssRest } =
-                        await Critter(noCssOptions);
+                    let { critical: noCssCritical, rest: noCssRest } = await Critter(noCssOptions);
 
-                    fs.writeFileSync(
-                        path.join(rootDir, "./test/test_result_noCss.css"),
-                        noCssCritical,
-                        "utf-8"
-                    );
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_noCss.css'), noCssCritical, 'utf-8');
 
-                    fs.writeFileSync(
-                        path.join(
-                            rootDir,
-                            "./test/test_result_noCss_remaining.css"
-                        ),
-                        noCssRest,
-                        "utf-8"
-                    );
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_noCss_remaining.css'), noCssRest, 'utf-8');
 
                     resolve();
                 } catch (err) {
@@ -95,7 +64,7 @@ module.exports = () => {
 
                 server.close();
             })
-            .on("error", (err) => {
+            .on('error', err => {
                 reject(err);
             });
     });

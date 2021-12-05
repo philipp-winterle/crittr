@@ -1,8 +1,8 @@
 @charset "UTF-8";
 
 @font-face {
-    font-family: "Keep Critical";
-    src: url("ONLY TEST");
+    font-family: 'Keep Critical';
+    src: url('ONLY TEST');
 }
 
 body {
@@ -40,7 +40,7 @@ div {
     color: aqua;
 }
 
-.property-selector[data-test="test"] {
+.property-selector[data-test='test'] {
     color: bisque;
 }
 
@@ -70,7 +70,7 @@ div {
 .multi-selector,
 .forceInclude,
 .multi-selector-not-exists {
-    content: "forceIncludeMultiSelector";
+    content: 'forceIncludeMultiSelector';
 }
 
 .forceExclude {
@@ -80,11 +80,11 @@ div {
 .multi-selector,
 .forceExclude,
 .multi-selector-1 {
-    content: "forceExcludeMultiSelector";
+    content: 'forceExcludeMultiSelector';
 }
 
 :root .not-existing-selector {
-    content: "should not be included";
+    content: 'should not be included';
 }
 
 h1,
@@ -104,56 +104,56 @@ h6 {
 
 .pseudo-selector::after {
     color: limegreen;
-    content: "pseudo :after";
+    content: 'pseudo :after';
 }
 
 .pseudo-selector::before {
     color: silver;
-    content: "pseudo ::before";
+    content: 'pseudo ::before';
 }
 
 .multi-selector,
 .not-exists .remaining-css,
 .multi-selector-1 {
-    content: "should only have multi-selector and multi-selector-1 in criticalcss";
+    content: 'should only have multi-selector and multi-selector-1 in criticalcss';
 }
 
 .pre .wildcard_test_1 .post {
-    content: "wildcard test [not included in HTML] - SHOULD BE INCLUDED";
+    content: 'wildcard test [not included in HTML] - SHOULD BE INCLUDED';
 }
 
 .pre .wildcard_test_2 .post {
-    content: "wildcard test [not included in HTML] - SHOULD NOT BE INCLUDED";
+    content: 'wildcard test [not included in HTML] - SHOULD NOT BE INCLUDED';
 }
 
 .wildcard_test_3.space {
-    content: "SHOULD NOT BE INCLUDED";
+    content: 'SHOULD NOT BE INCLUDED';
 }
 
 @media (min-width: 1024px) {
     .standard-selector {
         color: black;
-        content: ".standard-selector 1024";
+        content: '.standard-selector 1024';
     }
 
     #id-selector {
         color: blue;
-        content: "#id-selector 1024";
+        content: '#id-selector 1024';
     }
 
     div {
         color: darkgrey;
-        content: "div 1024";
+        content: 'div 1024';
     }
 
     .pseudo-selector::after {
         color: limegreen;
-        content: "pseudo 1024 :after";
+        content: 'pseudo 1024 :after';
     }
 
     .pseudo-selector::before {
         color: silver;
-        content: "pseudo 1024 ::before";
+        content: 'pseudo 1024 ::before';
     }
 
     .no-atf-css-default-1024 {
@@ -171,19 +171,19 @@ h6 {
     .multi-selector,
     .not-exists-mq-1024 .remaining-css,
     .multi-selector-1 {
-        content: "should only have multi-selector and multi-selector-1 in criticalcss";
+        content: 'should only have multi-selector and multi-selector-1 in criticalcss';
     }
 }
 
 @media (min-width: 1024px) {
     .standard-selector {
-        content: "double media query 1024 .standard-selector";
+        content: 'double media query 1024 .standard-selector';
     }
 }
 
 @media (min-width: 1024px) {
     .standard-selector {
-        content: "double media query 1024 .standard-selector";
+        content: 'double media query 1024 .standard-selector';
     }
 }
 
@@ -194,24 +194,24 @@ h6 {
 
     .standard-selector {
         color: black;
-        content: ".standard-selector 800";
+        content: '.standard-selector 800';
     }
 }
 
 @media (min-width: 800px) {
     .standard-selector {
         color: black;
-        content: ".standard-selector 800";
+        content: '.standard-selector 800';
     }
 
     #id-selector {
         color: blue;
-        content: "#id-selector 800";
+        content: '#id-selector 800';
     }
 
     div {
         color: darkgrey;
-        content: "div 800";
+        content: 'div 800';
     }
 
     .no-atf-css-default-800 {
@@ -229,16 +229,16 @@ h6 {
 
 @media (max-width: 1337px) {
     .no-selector {
-        content: "just no";
+        content: 'just no';
     }
     .standard-selector {
         color: black;
-        content: ".standard-selector 800";
+        content: '.standard-selector 800';
     }
 }
 
 @media (max-width: 337px) {
     .no-selector {
-        content: "just no";
+        content: 'just no';
     }
 }
