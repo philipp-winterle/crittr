@@ -3,54 +3,8 @@ const path = require('path');
 const css = require('css');
 
 const rootDir = path.join(__dirname, '..', '..');
+const helpers = require('./../helpers.js');
 const Rule = require(path.join(rootDir, 'lib/classes/Rule.class'));
-
-/**
- *
- * @param {CSSRuleList} astRules
- * @returns Map
- */
-const getAstRules = astRules => {
-    const criticalSelectorRules = new Map();
-    // Gather all Selectors of result CSS
-    for (const rule of astRules) {
-        if (rule.type === 'rule') {
-            const selectors = rule.selectors.join(',');
-            if (criticalSelectorRules.has(selectors)) {
-                let count = criticalSelectorRules.get(selectors);
-                criticalSelectorRules.set(selectors, ++count);
-            } else {
-                criticalSelectorRules.set(selectors, 1);
-            }
-        } else if (rule.type === 'media') {
-            const rules = rule.rules;
-            const mediaSelector = rule.media;
-
-            for (const rule of rules) {
-                if (rule.type === 'rule') {
-                    const pairedSelector = mediaSelector + '===' + rule.selectors.join(',');
-                    if (criticalSelectorRules.has(pairedSelector)) {
-                        let count = criticalSelectorRules.get(pairedSelector);
-                        criticalSelectorRules.set(pairedSelector, ++count);
-                    } else {
-                        criticalSelectorRules.set(pairedSelector, 1);
-                    }
-                } else {
-                    console.warn('Unkown rule type -> not recognized: ', rule.type);
-                }
-            }
-        } else {
-            if (criticalSelectorRules.has(rule.type)) {
-                let count = criticalSelectorRules.get(rule.type);
-                criticalSelectorRules.set(rule.type, ++count);
-            } else {
-                criticalSelectorRules.set(rule.type, 1);
-            }
-        }
-    }
-
-    return criticalSelectorRules;
-};
 
 describe('Basic Test', () => {
     describe('Check Results', () => {
@@ -61,7 +15,7 @@ describe('Basic Test', () => {
         const resultAstRules = css.parse(resultCSS).stylesheet.rules;
         const remainingAstRules = css.parse(remainingCSS).stylesheet.rules;
 
-        const criticalSelectorRules = getAstRules(resultAstRules);
+        const criticalSelectorRules = helpers.getAstRules(resultAstRules);
 
         // Selectors to search for
         const mustHaveSelectors = {
@@ -91,6 +45,8 @@ describe('Basic Test', () => {
                 '.pseudo-selector::before',
             ],
             media800: ['.standard-selector', '#id-selector', '.forceInclude'],
+            supports: ['.supports-selector'],
+            media800_supports: ['.supports-selector'],
         };
 
         const mustMissSelectors = {
@@ -104,6 +60,8 @@ describe('Basic Test', () => {
             ],
             media1024: ['.forceExclude', '.no-atf-css-default-1024'],
             media800: ['.forceExclude', '.no-atf-css-default-800'],
+            supports: ['.supports-selector-not-included'],
+            media800_supports: ['.supports-selector-not-included'],
         };
 
         test('Standard selectors should be included', () => {
@@ -126,6 +84,30 @@ describe('Basic Test', () => {
             expect(falseIncludedSelectors).toHaveLength(0);
         });
 
+        test('Supports selectors should be included', () => {
+            const missingSelectors = [];
+            const selectorPrefix = 'supports (display: flex)===';
+            for (const selector of mustHaveSelectors.supports) {
+                const selectorStr = selectorPrefix + selector;
+                if (!criticalSelectorRules.has(selectorStr)) {
+                    missingSelectors.push(selectorStr);
+                }
+            }
+            expect(missingSelectors).toHaveLength(0);
+        });
+
+        test('Supports selectors should NOT be included', () => {
+            const selectorPrefix = 'supports (display: flex)===';
+            const falseIncludedSelectors = [];
+            for (const selector of mustMissSelectors.supports) {
+                const selectorStr = selectorPrefix + selector;
+                if (criticalSelectorRules.has(selectorStr)) {
+                    falseIncludedSelectors.push(selectorStr);
+                }
+            }
+            expect(falseIncludedSelectors).toHaveLength(0);
+        });
+
         test("There shouldn't be any duplicate media query delcarations", () => {
             const duplicateMediaQuery = [];
             const mqCounter = [];
@@ -143,7 +125,7 @@ describe('Basic Test', () => {
 
         test('MediaQuery 1024 selectors should be included', () => {
             const missingSelectors = [];
-            const selectorPrefix = '(min-width: 1024px)===';
+            const selectorPrefix = 'media (min-width: 1024px)===';
             for (const selector of mustHaveSelectors.media1024) {
                 if (!criticalSelectorRules.has(selectorPrefix + selector)) {
                     missingSelectors.push(selectorPrefix + selector);
@@ -154,7 +136,7 @@ describe('Basic Test', () => {
 
         test('MediaQuery 1024 selectors should NOT be included', () => {
             const falseIncludedSelectors = [];
-            const selectorPrefix = '(min-width: 1024px)===';
+            const selectorPrefix = 'media (min-width: 1024px)===';
             for (const selector of mustMissSelectors.media1024) {
                 if (criticalSelectorRules.has(selectorPrefix + selector)) {
                     falseIncludedSelectors.push(selectorPrefix + selector);
@@ -165,7 +147,7 @@ describe('Basic Test', () => {
 
         test('MediaQuery 800 selectors should be included', () => {
             const missingSelectors = [];
-            const selectorPrefix = '(min-width: 800px)===';
+            const selectorPrefix = 'media (min-width: 800px)===';
             for (const selector of mustHaveSelectors.media800) {
                 if (!criticalSelectorRules.has(selectorPrefix + selector)) {
                     missingSelectors.push(selectorPrefix + selector);
@@ -176,8 +158,30 @@ describe('Basic Test', () => {
 
         test('MediaQuery 800 selectors should NOT be included', () => {
             const falseIncludedSelectors = [];
-            const selectorPrefix = '(min-width: 800px)===';
+            const selectorPrefix = 'media (min-width: 800px)===';
             for (const selector of mustMissSelectors.media800) {
+                if (criticalSelectorRules.has(selectorPrefix + selector)) {
+                    falseIncludedSelectors.push(selectorPrefix + selector);
+                }
+            }
+            expect(falseIncludedSelectors).toHaveLength(0);
+        });
+
+        test('MediaQuery 800 @supports should be included', () => {
+            const missingSelectors = [];
+            const selectorPrefix = 'media (min-width: 800px)===supports (display: flex)===';
+            for (const selector of mustHaveSelectors.media800_supports) {
+                if (!criticalSelectorRules.has(selectorPrefix + selector)) {
+                    missingSelectors.push(selectorPrefix + selector);
+                }
+            }
+            expect(missingSelectors).toHaveLength(0);
+        });
+
+        test('MediaQuery 800 @supports should NOT be included', () => {
+            const falseIncludedSelectors = [];
+            const selectorPrefix = 'media (min-width: 800px)===supports (display: flex)===';
+            for (const selector of mustMissSelectors.media800_supports) {
                 if (criticalSelectorRules.has(selectorPrefix + selector)) {
                     falseIncludedSelectors.push(selectorPrefix + selector);
                 }

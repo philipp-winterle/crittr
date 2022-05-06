@@ -7,7 +7,9 @@ module.exports = {
             globalTeardown: './test/teardown.js',
             roots: ['<rootDir>'],
             testMatch: ['**/test/tests/**/*.test.js?(x)'],
-            testURL: 'http://localhost',
+            testEnvironmentOptions: {
+                url: 'http://localhost',
+            },
         },
     ],
 };
