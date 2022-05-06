@@ -130,6 +130,18 @@ h6 {
     content: 'SHOULD NOT BE INCLUDED';
 }
 
+@supports (display: flex) {
+    .supports-selector {
+        content: 'supports test - should be included';
+    }
+}
+
+@supports (display: flex) {
+    .supports-selector-not-included {
+        content: 'supports test - not included';
+    }
+}
+
 @media (min-width: 1024px) {
     .standard-selector {
         color: black;
@@ -224,6 +236,18 @@ h6 {
 
     .forceExclude {
         color: royalblue;
+    }
+
+    @supports (display: flex) {
+        .supports-selector {
+            content: 'supports test mq - should be included';
+        }
+    }
+
+    @supports (display: flex) {
+        .supports-selector-not-included {
+            content: 'supports test - not included';
+        }
     }
 }
 
