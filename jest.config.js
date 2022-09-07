@@ -3,10 +3,10 @@ module.exports = {
     projects: [
         {
             displayName: 'Basic',
-            globalSetup: './test/setup.js',
-            globalTeardown: './test/teardown.js',
+            globalSetup: './test/setup.cjs',
+            globalTeardown: './test/teardown.cjs',
             roots: ['<rootDir>'],
-            testMatch: ['**/test/tests/**/*.test.js?(x)'],
+            testMatch: ['**/test/tests/**/*.test.cjs?(x)'],
             testEnvironmentOptions: {
                 url: 'http://localhost',
             },

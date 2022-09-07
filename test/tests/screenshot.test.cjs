@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const rootDir = path.join(__dirname, '..', '..');
-const helpers = require('./../helpers.js');
+const helpers = require('./../helpers.cjs');
 const Rule = require(path.join(rootDir, 'lib/classes/Rule.class'));
 
 const urls = [
@@ -21,7 +21,7 @@ describe('Screenshots', () => {
                 urls.every(url => {
                     const expectedScreenName = url.replace(/[^\w\s]/gi, '_') + '.png';
                     return files.includes(expectedScreenName);
-                })
+                }),
             ).toBeTruthy();
         });
 
@@ -33,7 +33,7 @@ describe('Screenshots', () => {
                     sha1.update(url);
                     const expectedScreenName = `${sha1.digest('hex')}.png`;
                     return files.includes(expectedScreenName);
-                })
+                }),
             ).toBeTruthy();
         });
     });
