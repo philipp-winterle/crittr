@@ -2,6 +2,7 @@ const Critter = require('../index');
 const fs = require('fs-extra');
 const path = require('path');
 const merge = require('deepmerge');
+const crypto = require('crypto');
 
 const rootDir = path.join(__dirname, '..');
 const staticServer = require('../lib/helper/localFileServer')(rootDir);
@@ -39,6 +40,36 @@ const noCssOptions = merge(defaultOptions, {
     css: null,
 });
 
+const screenshotOptions = merge(defaultOptions, {
+    urls: [
+        'http://localhost:8000/test/data/test.html?1',
+        'http://localhost:8000/test/data/test.html?2',
+        'http://localhost:8000/test/data/test.html?3',
+        'http://localhost:8000/test/data/test.html?4',
+    ],
+    css: testData.css,
+    takeScreenshots: true,
+    screenshotPath: path.join(__dirname, 'screenshots', 'normal'),
+});
+
+const screenNameGenerator = async (url) => {
+    const sha1HashGen = crypto.createHash('sha1');
+    sha1HashGen.update(url);
+    return sha1HashGen.digest('hex');
+}
+const screenshotWithFunctionOptions = merge(defaultOptions, {
+    urls: [
+        'http://localhost:8000/test/data/test.html?1',
+        'http://localhost:8000/test/data/test.html?2',
+        'http://localhost:8000/test/data/test.html?3',
+        'http://localhost:8000/test/data/test.html?4',
+    ],
+    css: testData.css,
+    takeScreenshots: true,
+    screenshotPath: path.join(__dirname, 'screenshots', 'withFunction'),
+    screenshotNameGenerator: screenNameGenerator,
+});
+
 module.exports = () => {
     return new Promise(async (resolve, reject) => {
         const server = staticServer
@@ -56,6 +87,20 @@ module.exports = () => {
                     fs.writeFileSync(path.join(rootDir, './test/test_result_noCss.css'), noCssCritical, 'utf-8');
 
                     fs.writeFileSync(path.join(rootDir, './test/test_result_noCss_remaining.css'), noCssRest, 'utf-8');
+
+                    // Third Run for URL
+                    let { critical: screenshotCssCritical, rest: screenshotCssRest } = await Critter(screenshotOptions);
+
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_screenshotCss.css'), screenshotCssCritical, 'utf-8');
+
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_screenshotCss_remaining.css'), screenshotCssRest, 'utf-8');
+
+                    // Fourth Run for URL
+                    let { critical: screenshotWithFunctionCssCritical, rest: screenshotWithFunctionCssRest } = await Critter(screenshotWithFunctionOptions);
+
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_screenshotWithFunctionCss.css'), screenshotWithFunctionCssCritical, 'utf-8');
+
+                    fs.writeFileSync(path.join(rootDir, './test/test_result_screenshotWithFunctionCss_remaining.css'), screenshotWithFunctionCssRest, 'utf-8');
 
                     resolve();
                 } catch (err) {

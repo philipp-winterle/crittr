@@ -4,3 +4,5 @@ tmp/*
 yarn-error.log
 test.js
 .vscode
+test/screenshots
+test/*.css
