@@ -43,6 +43,8 @@
         "postcss": "^8.4.33",
         "postcss-sort-media-queries": "^5.2.0",
         "puppeteer": "^21.9.0",
+        "puppeteer-extra": "^3.3.6",
+        "puppeteer-extra-plugin-stealth": "^2.11.2",
         "run-queue": "^2.0.1",
         "signale": "^1.4.0"
     },
