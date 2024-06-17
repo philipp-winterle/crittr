@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/philipp-winterle/crittr/compare/v2.0.1...v2.0.2) (2024-06-17)
+
+
+### Bug Fixes
+
+* release please need to update the package version aswell ([20506ac](https://github.com/philipp-winterle/crittr/commit/20506ac62fd54de518af137f2cebe45443615706))
+
 ## [2.0.1](https://github.com/philipp-winterle/crittr/compare/v2.0.0...v2.0.1) (2024-06-17)
 
 
