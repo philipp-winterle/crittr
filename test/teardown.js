@@ -1,8 +1,10 @@
-const fs = require('fs-extra');
-const path = require('path');
+import fs from 'fs-extra';
+import path from 'path';
+import url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..');
 
-module.exports = async function () {
+export default async function () {
     // Cleans up artifacts (`.css` files and `screenshots` folder from `test`)
     const files = await fs.readdir(__dirname);
     await Promise.all(
@@ -10,4 +12,4 @@ module.exports = async function () {
             .filter(fileOrFolder => fileOrFolder.endsWith('.css') || fileOrFolder === 'screenshots')
             .map(fileOrFolder => fs.remove(path.join('./test/', fileOrFolder))),
     );
-};
+}

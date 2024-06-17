@@ -1,6 +1,4 @@
-const path = require('path');
-const rootDir = path.join(__dirname, '..');
-const Rule = require(path.join(rootDir, 'lib/classes/Rule.class.js'));
+import Rule from '../lib/classes/Rule.class.js';
 
 const isGroupRule = rule => {
     return rule.type !== 'rule' && rule.rules !== undefined;
@@ -51,6 +49,6 @@ const getAstRules = astRules => {
     return criticalSelectorRules;
 };
 
-module.exports = {
+export default {
     getAstRules: getAstRules,
 };

@@ -1,10 +1,11 @@
-const fs = require('fs-extra');
-const path = require('path');
-const crypto = require('crypto');
+import crypto from 'crypto';
+import fs from 'fs-extra';
+import path from 'path';
+import url from 'url';
 
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..', '..');
-const helpers = require('./../helpers.cjs');
-const Rule = require(path.join(rootDir, 'lib/classes/Rule.class'));
+const testResultDir = path.join(rootDir, 'test', 'results');
 
 const urls = [
     'http://localhost:8000/test/data/test.html?1',
@@ -16,7 +17,7 @@ const urls = [
 describe('Screenshots', () => {
     describe('Check screenshot names', () => {
         test('Check that the normal screenshots were generated with the name based on the URL', async () => {
-            const files = await fs.readdir(path.join(__dirname, '..', 'screenshots', 'normal'));
+            const files = await fs.readdir(path.join(testResultDir, 'screenshots', 'normal'));
             expect(
                 urls.every(url => {
                     const expectedScreenName = url.replace(/[^\w\s]/gi, '_') + '.png';
@@ -26,7 +27,7 @@ describe('Screenshots', () => {
         });
 
         test('Check that the screenshots with a name generator function were generated with the name as the URL SHA1 hashed', async () => {
-            const files = await fs.readdir(path.join(__dirname, '..', 'screenshots', 'withFunction'));
+            const files = await fs.readdir(path.join(testResultDir, 'screenshots', 'withFunction'));
             expect(
                 urls.every(url => {
                     const sha1 = crypto.createHash('sha1');
