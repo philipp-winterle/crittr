@@ -1,4 +1,4 @@
-name: Versioning and Tagging
+name: Versioning and Tagging (release-please)
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ACTION_ACCESS_TOKEN }}
           # this is a built-in strategy in release-please, see "Action Inputs"
           # for more options
           release-type: simple

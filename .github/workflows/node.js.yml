@@ -1,11 +1,9 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Node.js CI
+name: Run Tests
 
 on:
-    push:
-        branches: [master]
     pull_request:
         branches: [master]
 
@@ -24,6 +22,6 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node-version }}
-            - run: yarn
-            - run: yarn run build --if-present
-            - run: yarn test
+            - run: npm
+            - run: npm run build
+            - run: npm test
