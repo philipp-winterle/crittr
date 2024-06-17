@@ -4,6 +4,9 @@
 name: Publish NPM Package
 
 on:
+    workflow_dispatch:
+        branches:
+            - master
     release:
         types: [created]
 
