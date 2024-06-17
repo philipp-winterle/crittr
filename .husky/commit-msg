@@ -1,1 +1,3 @@
+#!/bin/sh
+echo "Commit Linting - Please follow the commit message format of conventional-commits!"
 commitlint --edit $1
