@@ -67,8 +67,7 @@
     "scripts": {
         "test": "cross-env NODE_ENV=development node --experimental-vm-modules node_modules/jest/bin/jest.js --bail --verbose",
         "build": "echo 'build is not configured for package. Skipping.'",
-        "prepare": "husky",
-        "release": "release-please"
+        "prepare": "husky"
     },
     "files": [
         "docs",
