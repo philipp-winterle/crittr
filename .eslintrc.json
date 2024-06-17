@@ -9,7 +9,7 @@
         "ecmaVersion": 12,
         "sourceType": "script"
     },
-    "plugins": ["@babel"],
+    "plugins": ["@babel", "sort-destructure-keys"],
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-newline": "error",
@@ -225,7 +225,6 @@
         "semi-spacing": "error",
         "semi-style": "error",
         "sort-imports": "off",
-        "sort-keys": "error",
         "sort-vars": "error",
         "space-before-blocks": "error",
         "space-before-function-paren": "off",
@@ -244,6 +243,8 @@
         "wrap-iife": "error",
         "wrap-regex": "error",
         "yield-star-spacing": "error",
-        "yoda": "error"
+        "yoda": "error",
+        "sort-keys": ["error", "asc", { "caseSensitive": true, "natural": true, "minKeys": 5 }],
+        "sort-destructure-keys/sort-destructure-keys": ["warn", { "caseSensitive": true }]
     }
 }

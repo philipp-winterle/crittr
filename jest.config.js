@@ -1,15 +1,16 @@
 // jest.config.js
-module.exports = {
+export default {
     projects: [
         {
             displayName: 'Basic',
-            globalSetup: './test/setup.cjs',
-            globalTeardown: './test/teardown.cjs',
+            globalSetup: './test/setup.js',
+            globalTeardown: './test/teardown.js',
             roots: ['<rootDir>'],
-            testMatch: ['**/test/tests/**/*.test.cjs?(x)'],
+            testMatch: ['**/test/tests/**/*.test.js?(x)'],
             testEnvironmentOptions: {
                 url: 'http://localhost',
             },
         },
     ],
+    transform: {},
 };

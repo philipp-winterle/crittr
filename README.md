@@ -12,12 +12,12 @@
 
 #### Feature Facts
 
--   Amazing speed
--   Designed to be used by power users as a nodejs module (no useless browser usage)
--   :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
--   When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
--   Ongoing maintenance because of being used in enterprise environment
--   Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
+- Amazing speed
+- Designed to be used by power users as a nodejs module (no useless browser usage)
+- :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
+- When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
+- Ongoing maintenance because of being used in enterprise environment
+- Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
 
 ## Performance
 
@@ -33,10 +33,10 @@ There are some other libraries out there dealing with the topic of extracting th
 
 ### Requirements
 
--   minimum nodejs > 12 | recommended nodejs 16+
-    -   async/await
-    -   Promises
--   puppeteer dependecies on UNIX bases OS (including MacOSX)
+- minimum nodejs > 12 | recommended nodejs 16+
+- async/await
+- Promises
+- puppeteer dependecies on UNIX bases OS (including MacOSX)
 
 > Due to some dependencies of crittr you may need to install some additional software.
 > Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
@@ -45,7 +45,7 @@ There are some other libraries out there dealing with the topic of extracting th
 
 To use crittr as a module or cli in your nodejs environment just install it with
 
-```
+```shell
 npm i crittr
 ```
 
@@ -166,7 +166,7 @@ Crittr({
 
 You can see the output of the time measurement after every run. So you will be able to check you overall processing time.
 
-```
+```shell
 ▶  Crittr Run Initialized timer...
 ◼  Crittr Run Timer run for: 2.33s
 ```
@@ -253,20 +253,20 @@ This keepSelectors options will match every selector that begins with `.test` an
 
 ## FAQ :confused:
 
--   Why do I need to put my css file in when I only want to extract the critical css?
+- Why do I need to put my css file in when I only want to extract the critical css?
     You don't need to but if you don't set your css file as an option you may not receive all vendor prefixes you may expect. This is due testing with only one browser engine which drop other prefixes.
--   After including the remaining css aswell my page starts looking different. Why is that?
+- After including the remaining css aswell my page starts looking different. Why is that?
     If you progress more than 1 url at the same time crittr can not determinate where a rule has to be positioned in the whole css to not get in conflict with other rules overwriting them. You have to write clean css to prevent such an behaviour. Overwriting rules should always have longer selectors than the rules they are overwriting to raise priority.
 
 ## Upcoming :trumpet:
 
--   [ ] :star: cookie includes
--   [x] :star: wildcards
--   [x] :+1: compress output option
--   [x] :fire: return of the remaining css aswell
--   [x] :grey_question: multi selector partial matches
--   [x] :tea: returning of remaining css aswell (optional)
--   [x] :clock2: performance boost for large css
+- [ ] :star: cookie includes
+- [x] :star: wildcards
+- [x] :+1: compress output option
+- [x] :fire: return of the remaining css aswell
+- [x] :grey_question: multi selector partial matches
+- [x] :tea: returning of remaining css aswell (optional)
+- [x] :clock2: performance boost for large css
 
 ## Known Bugs :shit:
 
