@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.1](https://github.com/philipp-winterle/crittr/compare/v2.0.0...v2.0.1) (2024-06-17)
+
+
+### Bug Fixes
+
+* missing "ci" in npm call ([e5e1d7d](https://github.com/philipp-winterle/crittr/commit/e5e1d7d5f0ebe81ce308bfabffdf424be8ee9212))
+* missing yarn calls in actions ([9e567d6](https://github.com/philipp-winterle/crittr/commit/9e567d60ab0c69f6c5695bfdb21de2787d55c3e1))
+* switching token for versioning to personal access token to trigger follow up actions ([9e567d6](https://github.com/philipp-winterle/crittr/commit/9e567d60ab0c69f6c5695bfdb21de2787d55c3e1))
+
 ## [2.0.0](https://github.com/philipp-winterle/crittr/compare/1.5.3...v2.0.0) (2024-06-17)
 
 
