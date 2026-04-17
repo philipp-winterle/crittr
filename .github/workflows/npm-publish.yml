@@ -17,8 +17,8 @@ jobs:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
-                  node-version: 20
-            - run: npm ci
+                  node-version: 24
+            - run: npm install
             - run: npm test
 
     publish-npm:
@@ -28,9 +28,9 @@ jobs:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 24
                   registry-url: https://registry.npmjs.org/
-            - run: npm ci
+            - run: npm install
             - run: npm publish
               env:
                   NODE_AUTH_TOKEN: ${{secrets.npm_token}}
