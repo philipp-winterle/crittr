@@ -1,7 +1,8 @@
+import path from 'node:path';
+import url from 'node:url';
 import fs from 'fs-extra';
-import path from 'path';
-import css from 'css';
-import url from 'url';
+import { describe, expect, test } from 'vitest';
+import { parseCss } from '../../lib/helper/cssAstAdapter.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..', '..');
@@ -11,7 +12,7 @@ describe('Vendor Prefix Test', () => {
     describe('Check Vendor Prefix Exists', () => {
         const resultCSS = fs.readFileSync(path.join(testResultDir, 'test_result.css'), 'utf8');
 
-        const resultAstRules = css.parse(resultCSS).stylesheet.rules;
+        const resultAstRules = parseCss(resultCSS).stylesheet.rules;
 
         test('Vendor prefixes still exists', () => {
             const vendorPrefixRule = resultAstRules.find(rule => rule.type === 'rule' && rule.selectors.includes('.vendor_prefix'));

@@ -7,13 +7,13 @@ const isGroupRule = rule => {
 const addCriticalRule = (rule, criticalSelectorRules, rulePrefix = '') => {
     if (isGroupRule(rule)) {
         const ruleKey = Rule.generateRuleKey(rule);
-        rulePrefix = `${rulePrefix}${ruleKey}===`;
+        const nextRulePrefix = `${rulePrefix}${ruleKey}===`;
 
         // CSSGroupingRule has cssRules as main property. .rules is deprecated
         const rules = rule.rules || [];
 
         for (const rule of rules) {
-            addCriticalRule(rule, criticalSelectorRules, rulePrefix);
+            addCriticalRule(rule, criticalSelectorRules, nextRulePrefix);
         }
     } else if (Rule.isStyleRule(rule)) {
         const pairedSelector = `${rulePrefix}${rule.selectors.join(',')}`;

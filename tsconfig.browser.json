@@ -1,0 +1,26 @@
+{
+    "//": "Browser-Context tsconfig — nur für lib/evaluation/extract_critical_*.js. Diese Files werden via Puppeteer page.evaluate() im Chrome ausgeführt und haben keinen Node-Scope. Separates lib [DOM] + kein node-types. Wird erst in Phase 3 (ts-migrator) aktiv relevant, wenn die Eval-Files zu .ts werden. Aktuell existiert die Datei als Vorbereitung.",
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "lib": ["ES2022", "DOM"],
+        "strict": true,
+        "esModuleInterop": true,
+        "allowJs": true,
+        "checkJs": false,
+        "declaration": false,
+        "sourceMap": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": [],
+        "noEmit": true
+    },
+    "include": [
+        "lib/evaluation/extract_critical_with_css.js",
+        "lib/evaluation/extract_critical_without_css.js",
+        "lib/evaluation/extract_critical_with_css.ts",
+        "lib/evaluation/extract_critical_without_css.ts"
+    ],
+    "exclude": ["node_modules", "dist", "test", "examples", "_workspace"]
+}

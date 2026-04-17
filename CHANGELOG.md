@@ -1,5 +1,26 @@
 # Changelog
 
+## [Unreleased] — 3.0.0
+
+### ⚠ BREAKING CHANGES
+
+- **Node.js minimum is now 20 LTS.** Node 18 reached EOL; CI matrix runs on 20.x / 22.x / 24.x.
+- **Package shape:** runtime files now ship from `dist/` (previously `lib/`). The `main` / `types` / `exports` fields in `package.json` resolve to `dist/index.js` and `dist/index.d.ts`. Consumers importing from deep paths (e.g. `crittr/lib/...`) must update to the public entrypoint.
+- **Public TypeScript types** are now bundled with the package — no `@types/crittr` needed.
+- **Dependency cleanup:**
+  - Bumped `puppeteer` to **24.x** (removes the deprecated `ignoreHTTPSErrors` option internally; see release notes).
+  - Removed `css@3` (unmaintained) — replaced by a PostCSS-based adapter that preserves the reworkcss-compatible AST shape for `page.evaluate`.
+  - Removed `signale` (dead dependency) and slimmed lodash usage.
+- **Internal tooling migrations** (no runtime impact for consumers):
+  - Test runner: Jest → **Vitest**.
+  - Lint/format: ESLint + Prettier → **Biome**.
+
+### Compatibility
+
+- **Public API unchanged**: the default export signature `crittr(options) => Promise<{ critical, rest }>` is preserved. All existing options keys are accepted without modification.
+
+---
+
 ## [2.0.2](https://github.com/philipp-winterle/crittr/compare/v2.0.1...v2.0.2) (2024-06-17)
 
 

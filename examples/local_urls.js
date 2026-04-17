@@ -1,5 +1,4 @@
-'use strict';
-const path = require('path');
+const path = require('node:path');
 const fs = require('fs-extra');
 const Crittr = require('../index');
 const rootDir = path.join(__dirname, '..');
@@ -12,7 +11,7 @@ const testCase = {
         'http://localhost:8000/test/data/test.html?3',
         'http://localhost:8000/test/data/test.html?4',
     ],
-    css: rootDir + '/test/data/test.css',
+    css: `${rootDir}/test/data/test.css`,
 };
 
 staticServer

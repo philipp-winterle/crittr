@@ -33,10 +33,11 @@ There are some other libraries out there dealing with the topic of extracting th
 
 ### Requirements
 
-- minimum nodejs > 12 | recommended nodejs 16+
+- Node.js 20 LTS or newer (Node 22+ recommended)
 - async/await
 - Promises
 - puppeteer dependecies on UNIX bases OS (including MacOSX)
+- TypeScript types are shipped with the package (no `@types/crittr` needed)
 
 > Due to some dependencies of crittr you may need to install some additional software.
 > Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
@@ -55,7 +56,7 @@ npm i crittr
 
 To use crittr as a module just require it and choose your [options](#options).
 
-The crittr module has the expects an object as input parameter and returns an array with 2 css strings. The first one is the criticalCss string and the second one is the remaining css without the critical selectors.
+The crittr module expects an options object as input parameter and returns a Promise resolving to an object `{ critical, rest }`. `critical` is the critical CSS string and `rest` is the remaining CSS without the critical selectors.
 
 ```javascript
 // async/await
@@ -72,7 +73,7 @@ crittr(options).then(({ critical, rest }) => {
 ##### Basic
 
 ```javascript
-const Crittr = require('crittr');
+import Crittr from 'crittr';
 
 Crittr({
     urls: ['https://github.com/'],
@@ -97,7 +98,7 @@ Crittr({
 As you can also read in the [options](#options) section there is the possibility to use a css file as a path instead of a string. If the path provided ends with `.css` it is treated as a file path.
 
 ```javascript
-const Crittr = require('crittr');
+import Crittr from 'crittr';
 
 Crittr({
     urls: ['https://github.com/'],
@@ -110,8 +111,9 @@ Crittr({
 Due to the fact, that crittr is returning a **Promise<String>** you can also use async/await syntax to handle the result.
 
 ```javascript
+import Crittr from 'crittr';
+
 (async () => {
-    const Crittr = require('crittr');
     try {
         const { critical, rest } = await Crittr({
             urls: ['https://github.com/'],
@@ -148,7 +150,7 @@ Crittr({
 To use the full power of crittr and get the most of the performance advantage you should pass in multiple urls. As of the fact that the most websites use one css file for multiple pages this is the ultimate way to get the critical css for all of them!
 
 ```javascript
-const Crittr = require('crittr');
+import Crittr from 'crittr';
 
 const urls = ['https://example.com/page1', 'https://example.com/page2', 'https://example.com/about', 'https://example.com/shop'];
 

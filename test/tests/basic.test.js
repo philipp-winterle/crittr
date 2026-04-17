@@ -1,9 +1,11 @@
+import path from 'node:path';
+import url from 'node:url';
 import fs from 'fs-extra';
-import path from 'path';
-import css from 'css';
-import helpers from './../helpers.js';
+import { describe, expect, test } from 'vitest';
 import Rule from '../../lib/classes/Rule.class.js';
-import url from 'url';
+import { parseCss } from '../../lib/helper/cssAstAdapter.js';
+import helpers from './../helpers.js';
+
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..', '..');
 const testResultDir = path.join(rootDir, 'test', 'results');
@@ -14,8 +16,8 @@ describe('Basic Test', () => {
 
         const remainingCSS = fs.readFileSync(path.join(testResultDir, 'test_result_remaining.css'), 'utf8');
 
-        const resultAstRules = css.parse(resultCSS).stylesheet.rules;
-        const remainingAstRules = css.parse(remainingCSS).stylesheet.rules;
+        const resultAstRules = parseCss(resultCSS).stylesheet.rules;
+        const remainingAstRules = parseCss(remainingCSS).stylesheet.rules;
 
         const criticalSelectorRules = helpers.getAstRules(resultAstRules);
 
@@ -194,7 +196,7 @@ describe('Basic Test', () => {
         test('There should not be duplicates of rules', () => {
             const getDeepDuplicates = (rules, excludedProps, media) => {
                 let duplicatedRules = [];
-                media = media || '';
+                const mediaLabel = media || '';
 
                 for (const rule of rules) {
                     if (rule.type === 'media') {
@@ -208,7 +210,8 @@ describe('Basic Test', () => {
                         }
                         if (duplicateCount > 1) {
                             // Put the rule into the duplicate Array but reduce the count by one because one is still needed :)
-                            const index = rule.type + (media ? ' ' + media + ' ' : '') + (rule.selectors ? rule.selectors.join(' ') : '');
+                            const index =
+                                rule.type + (mediaLabel ? ` ${mediaLabel} ` : '') + (rule.selectors ? rule.selectors.join(' ') : '');
                             if (!duplicatedRules.includes(index)) {
                                 duplicatedRules.push(index);
                             }
@@ -242,33 +245,35 @@ describe('Basic Test', () => {
         });
 
         test('There should not exist any non critical partial selectors in critical css', () => {
-            let exists = resultAstRules.some(rule => {
-                return rule.selectors && rule.selectors.includes('.not-exists .remaining-css');
+            const exists = resultAstRules.some(rule => {
+                return rule.selectors?.includes('.not-exists .remaining-css');
             });
 
             expect(exists).not.toBeTruthy();
         });
 
         test('There should not exist any non critical partial mq rule selectors in remaining css', () => {
-            let exists = resultAstRules.some(rule => {
+            const exists = resultAstRules.some(rule => {
                 if (rule.type === 'media') {
-                    return rule.rules.some(rule => rule.selectors && rule.selectors.includes('.not-exists-mq-1024 .remaining-css'));
+                    return rule.rules.some(innerRule => innerRule.selectors?.includes('.not-exists-mq-1024 .remaining-css'));
                 }
+                return false;
             });
 
             expect(exists).not.toBeTruthy();
         });
 
         test('There should exist any non critical partial selectors in remaining css', () => {
-            let exists = remainingAstRules.some(rule => rule.selectors && rule.selectors.includes('.not-exists .remaining-css'));
+            const exists = remainingAstRules.some(rule => rule.selectors?.includes('.not-exists .remaining-css'));
             expect(exists).toBeTruthy();
         });
 
         test('There should exist any non critical partial mq rule selectors in remaining css', () => {
-            let exists = remainingAstRules.some(rule => {
+            const exists = remainingAstRules.some(rule => {
                 if (rule.type === 'media') {
-                    return rule.rules.some(rule => rule.selectors && rule.selectors.includes('.not-exists-mq-1024 .remaining-css'));
+                    return rule.rules.some(innerRule => innerRule.selectors?.includes('.not-exists-mq-1024 .remaining-css'));
                 }
+                return false;
             });
 
             expect(exists).toBeTruthy();
