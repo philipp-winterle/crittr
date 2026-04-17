@@ -1,16 +1,18 @@
-const fs = require('fs-extra');
-const path = require('path');
-const css = require('css');
-
+import fs from 'fs-extra';
+import path from 'path';
+import css from 'css';
+import helpers from './../helpers.js';
+import Rule from '../../lib/classes/Rule.class.js';
+import url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..', '..');
-const helpers = require('./../helpers.js');
-const Rule = require(path.join(rootDir, 'lib/classes/Rule.class'));
+const testResultDir = path.join(rootDir, 'test', 'results');
 
 describe('Basic Test', () => {
     describe('Check Results', () => {
-        const resultCSS = fs.readFileSync(path.join(rootDir, 'test', 'test_result.css'), 'utf8');
+        const resultCSS = fs.readFileSync(path.join(testResultDir, 'test_result.css'), 'utf8');
 
-        const remainingCSS = fs.readFileSync(path.join(rootDir, 'test', 'test_result_remaining.css'), 'utf8');
+        const remainingCSS = fs.readFileSync(path.join(testResultDir, 'test_result_remaining.css'), 'utf8');
 
         const resultAstRules = css.parse(resultCSS).stylesheet.rules;
         const remainingAstRules = css.parse(remainingCSS).stylesheet.rules;

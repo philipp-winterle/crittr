@@ -1,21 +1,15 @@
-const fs = require('fs-extra');
-const path = require('path');
+import fs from 'fs-extra';
+import path from 'path';
+import url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..');
 
-module.exports = async function () {
-    fs.unlink(path.join(rootDir, './test/test_result.css'), err => {
-        if (err) throw err;
-    });
-
-    fs.unlink(path.join(rootDir, './test/test_result_remaining.css'), err => {
-        if (err) throw err;
-    });
-
-    fs.unlink(path.join(rootDir, './test/test_result_noCss.css'), err => {
-        if (err) throw err;
-    });
-
-    fs.unlink(path.join(rootDir, './test/test_result_noCss_remaining.css'), err => {
-        if (err) throw err;
-    });
-};
+export default async function () {
+    // Cleans up artifacts (`.css` files and `screenshots` folder from `test`)
+    const files = await fs.readdir(__dirname);
+    await Promise.all(
+        files
+            .filter(fileOrFolder => fileOrFolder.endsWith('.css') || fileOrFolder === 'screenshots')
+            .map(fileOrFolder => fs.remove(path.join('./test/', fileOrFolder))),
+    );
+}

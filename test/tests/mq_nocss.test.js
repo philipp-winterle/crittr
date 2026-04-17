@@ -1,15 +1,17 @@
-const Critter = require('../../index');
-const fs = require('fs-extra');
-const path = require('path');
-const css = require('css');
-
+import fs from 'fs-extra';
+import path from 'path';
+import css from 'css';
+import url from 'url';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..', '..');
-const Rule = require(path.join(rootDir, 'lib/classes/Rule.class'));
+const testResultDir = path.join(rootDir, 'test', 'results');
+
+
 
 describe('Media Query Special Tests', () => {
     describe('Media Query Order', () => {
-        const resultCSS = fs.readFileSync(path.join(rootDir, 'test', 'test_result_noCss.css'), 'utf8');
-        const remainingCSS = fs.readFileSync(path.join(rootDir, 'test', 'test_result_noCss_remaining.css'), 'utf8');
+        const resultCSS = fs.readFileSync(path.join(testResultDir, 'test_result_noCss.css'), 'utf8');
+        const remainingCSS = fs.readFileSync(path.join(testResultDir, 'test_result_noCss_remaining.css'), 'utf8');
         const resultAstRules = css.parse(resultCSS).stylesheet.rules;
         const remainingAstRules = css.parse(remainingCSS).stylesheet.rules;
 

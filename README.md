@@ -12,12 +12,12 @@
 
 #### Feature Facts
 
--   Amazing speed
--   Designed to be used by power users as a nodejs module (no useless browser usage)
--   :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
--   When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
--   Ongoing maintenance because of being used in enterprise environment
--   Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
+- Amazing speed
+- Designed to be used by power users as a nodejs module (no useless browser usage)
+- :boom: **Only library which is able to extract summarized critical css from multiple urls which has a common use case -> Most of the websites using one css file for multiple subpages** :boom: :metal:
+- When using multiple urls a max concurrency of extraction is adjustable. For machines with less power
+- Ongoing maintenance because of being used in enterprise environment
+- Returns not only the critical css. Also returns the remaining css of your given file. You don't need to include the full css on your page or reduce the css on your own :heart:
 
 ## Performance
 
@@ -33,10 +33,10 @@ There are some other libraries out there dealing with the topic of extracting th
 
 ### Requirements
 
--   minimum nodejs > 12 | recommended nodejs 16+
-    -   async/await
-    -   Promises
--   puppeteer dependecies on UNIX bases OS (including MacOSX)
+- minimum nodejs > 12 | recommended nodejs 16+
+- async/await
+- Promises
+- puppeteer dependecies on UNIX bases OS (including MacOSX)
 
 > Due to some dependencies of crittr you may need to install some additional software.
 > Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
@@ -45,7 +45,7 @@ There are some other libraries out there dealing with the topic of extracting th
 
 To use crittr as a module or cli in your nodejs environment just install it with
 
-```
+```shell
 npm i crittr
 ```
 
@@ -166,7 +166,7 @@ Crittr({
 
 You can see the output of the time measurement after every run. So you will be able to check you overall processing time.
 
-```
+```shell
 ▶  Crittr Run Initialized timer...
 ◼  Crittr Run Timer run for: 2.33s
 ```
@@ -177,23 +177,24 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 
 ## Options
 
-| Property            | Values  | Description                                                                                                                                                                                                               |
-| ------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **urls**            | Array   | An array containing the urls to check the css against. Has to be at least 1 url.                                                                                                                                          |
-| css                 | String  | Optional. Can be a plain css string or path to a css file or empty. If it is a path it has to end with `.css`! Otherwise it is not recognized as a path. If not set, the whole website css will be taken.                 |
-| timeout             | Number  | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000 |
-| pageLoadTimeout     | Number  | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stopped and the extraction continues. Default: 2000        |
-| outputRemainingCss  | Boolean | Optional. If set to false the result obj will not contain any rest css. Only an empty string will be given. Default: true                                                                                                 |
-| browser             | Object  | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for [browser object](#browser-options).                                                                                                  |
-| device              | Object  | Optional. Configuration object of device. E.g. width, height, ... See documentation for [device object](#device-options).                                                                                                 |
-| puppeteer           | Object  | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for [puppeteer object](#puppeteer-options).           |
-| printBrowserConsole | Boolean | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false                                                                                                                                  |
-| dropKeyframes       | Boolean | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false                                                                                                             |
-| takeScreenshots     | Boolean | Optional. If set a screenshot is taken for every url processed. Default: false                                                                                                                                            |
-| screenshotPath      | String  | Optional. The path the screenshots will be saved to. Default: "." (execution path)                                                                                                                                        |
-| keepSelectors       | Array   | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: [] |
-| removeSelectors:    | Array   | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []          |
-| blockRequests       | Array   | Optional. Some of the requests made by pages are an                                                                                                                                                                       |
+| Property                | Values                           | Description                                                                                                                                                                                                                      |
+| ----------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **urls**                | Array                            | An array containing the urls to check the css against. Has to be at least 1 url.                                                                                                                                                 |
+| css                     | String                           | Optional. Can be a plain css string or path to a css file or empty. If it is a path it has to end with `.css`! Otherwise it is not recognized as a path. If not set, the whole website css will be taken.                        |
+| timeout                 | Number                           | Optional. Integer number of milliseconds to wait for a page to navigate to. After timeout is reached the page navigation is aborted. **ATTENTION**: The critical css of the url timed out is not included. Default: 30000        |
+| pageLoadTimeout         | Number                           | Optional. After the page load event is fired the pageLoadTimeout is started. After the amount of milliseconds the ongoing loading of assets or xhr requests is stopped and the extraction continues. Default: 2000               |
+| outputRemainingCss      | Boolean                          | Optional. If set to false the result obj will not contain any rest css. Only an empty string will be given. Default: true                                                                                                        |
+| browser                 | Object                           | Optional. Configuration object of browser. E.g. userAgent, ... See documentation for [browser object](#browser-options).                                                                                                         |
+| device                  | Object                           | Optional. Configuration object of device. E.g. width, height, ... See documentation for [device object](#device-options).                                                                                                        |
+| puppeteer               | Object                           | Optional. Configuration object of puppeteer options like an already existing browser instance or a path to a Chrome instead of the used Chromium. See documentation for [puppeteer object](#puppeteer-options).                  |
+| printBrowserConsole     | Boolean                          | Optional. If set to true prints console output of urls to the stdoutput. Defaults: false                                                                                                                                         |
+| dropKeyframes           | Boolean                          | Optional. If set to false keeps keyframes as critical css content. Otherwise they are removed. Default: false                                                                                                                    |
+| takeScreenshots         | Boolean                          | Optional. If set a screenshot is taken for every url processed. Default: false                                                                                                                                                   |
+| screenshotPath          | String                           | Optional. The path the screenshots will be saved to. Default: "." (execution path)                                                                                                                                               |
+| screenshotNameGenerator | (url: string) => Promise<string> | Optional. Function that receives the processed URL as an argument and returns a `Promise` that resolves with the name to be used for the screenshot. When not provided, the URL's name will be sanitized and used as a filename. |
+| keepSelectors           | Array                            | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []        |
+| removeSelectors:        | Array                            | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []                 |
+| blockRequests           | Array                            | Optional. Some of the requests made by pages are an                                                                                                                                                                              |
 
 ### Browser options
 
@@ -252,20 +253,20 @@ This keepSelectors options will match every selector that begins with `.test` an
 
 ## FAQ :confused:
 
--   Why do I need to put my css file in when I only want to extract the critical css?
+- Why do I need to put my css file in when I only want to extract the critical css?
     You don't need to but if you don't set your css file as an option you may not receive all vendor prefixes you may expect. This is due testing with only one browser engine which drop other prefixes.
--   After including the remaining css aswell my page starts looking different. Why is that?
+- After including the remaining css aswell my page starts looking different. Why is that?
     If you progress more than 1 url at the same time crittr can not determinate where a rule has to be positioned in the whole css to not get in conflict with other rules overwriting them. You have to write clean css to prevent such an behaviour. Overwriting rules should always have longer selectors than the rules they are overwriting to raise priority.
 
 ## Upcoming :trumpet:
 
--   [ ] :star: cookie includes
--   [x] :star: wildcards
--   [x] :+1: compress output option
--   [x] :fire: return of the remaining css aswell
--   [x] :grey_question: multi selector partial matches
--   [x] :tea: returning of remaining css aswell (optional)
--   [x] :clock2: performance boost for large css
+- [ ] :star: cookie includes
+- [x] :star: wildcards
+- [x] :+1: compress output option
+- [x] :fire: return of the remaining css aswell
+- [x] :grey_question: multi selector partial matches
+- [x] :tea: returning of remaining css aswell (optional)
+- [x] :clock2: performance boost for large css
 
 ## Known Bugs :shit:
 

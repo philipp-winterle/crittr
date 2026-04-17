@@ -1,5 +1,5 @@
 // jest.config.js
-module.exports = {
+export default {
     projects: [
         {
             displayName: 'Basic',
@@ -12,4 +12,5 @@ module.exports = {
             },
         },
     ],
+    transform: {},
 };
