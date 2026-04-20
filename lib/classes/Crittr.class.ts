@@ -524,10 +524,47 @@ class Crittr {
         return [finalCss, finalRestCss, errors];
     }
 
+    isRetriableUrlEvaluationError(error: unknown): boolean {
+        if (!(error instanceof Error)) {
+            return false;
+        }
+
+        if (error.name === 'TimeoutError') {
+            return true;
+        }
+
+        return /timeout|target closed|session closed|execution context was destroyed|page crashed|navigation|net::err/i.test(
+            error.message,
+        );
+    }
+
     /**
-     * Evaluates an url and returns the critical and rest AST object tuple.
+     * Evaluates an url and retries transient browser failures that are more common in CI.
      */
     async evaluateUrl(url: string, sourceAst: CssStylesheet): Promise<[CssStylesheet | null, CssStylesheet | null]> {
+        const maxAttempts = 3;
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return await this.evaluateUrlOnce(url, sourceAst);
+            } catch (error) {
+                const shouldRetry = attempt < maxAttempts && this.isRetriableUrlEvaluationError(error);
+                if (!shouldRetry) {
+                    throw error;
+                }
+
+                log.warn(`Transient browser error while processing ${url}. Retry ${attempt} of ${maxAttempts - 1}.`);
+                await new Promise(resolve => setTimeout(resolve, attempt * 250));
+            }
+        }
+
+        throw new Error(`Failed to evaluate ${url}`);
+    }
+
+    /**
+     * Performs a single evaluation pass for a URL.
+     */
+    async evaluateUrlOnce(url: string, sourceAst: CssStylesheet): Promise<[CssStylesheet | null, CssStylesheet | null]> {
         let retryCounter = 3;
         let hasError: unknown | false = false;
         let page: Page | null = null;
