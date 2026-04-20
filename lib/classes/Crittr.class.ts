@@ -636,9 +636,10 @@ class Crittr {
                     const htmlContent = await fs.readFile(path.join(DEFAULTS.PROJECT_DIR, cleanedUrl), 'utf8');
                     await page.setContent(htmlContent);
                 } else {
+                    // `networkidle2` is flaky in CI; `load` matches getCssFromUrl.
                     await page.goto(url, {
                         timeout: this.options.timeout,
-                        waitUntil: ['networkidle2'],
+                        waitUntil: 'load',
                     });
                 }
 

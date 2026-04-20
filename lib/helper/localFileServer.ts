@@ -57,6 +57,7 @@ const staticServerFunc = (rootPath: string): Server => {
 
 export const createStaticServer = (rootPath: string): Server => {
     const staticServer = staticServerFunc(rootPath);
-    staticServer.setTimeout(1000);
+    // Do not set a short socket timeout: Puppeteer may keep connections alive while
+    // waiting for navigation; a 1s idle timeout caused flaky failures in GitHub Actions.
     return staticServer;
 };
