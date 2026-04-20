@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.1.0](https://github.com/philipp-winterle/crittr/compare/v3.0.0...v3.1.0) (2026-04-20)
+
+
+### Features
+
+* enhance URL evaluation with retry logic for transient errors ([1873495](https://github.com/philipp-winterle/crittr/commit/1873495bf9b2534b88356b4dbad5794a1509598b))
+
+
+### Bug Fixes
+
+* improve Puppeteer navigation reliability in CI ([02da200](https://github.com/philipp-winterle/crittr/commit/02da200a5d0c921b8364481519df0dd59ae44c30))
+* streamline error handling in Crittr class ([e3efd97](https://github.com/philipp-winterle/crittr/commit/e3efd97398c2c8b9576421a987c64897552160dc))
+* update GitHub Actions workflows to include id-token permissions ([e07d47f](https://github.com/philipp-winterle/crittr/commit/e07d47f9fb3a8599e1ab4430adbe983789d842be))
+
 ## [Unreleased] — 3.0.0
 
 ### ⚠ BREAKING CHANGES
