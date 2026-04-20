@@ -3,6 +3,11 @@
 
 name: Publish NPM Package
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 on:
     workflow_dispatch:
         branches:
