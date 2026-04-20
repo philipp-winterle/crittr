@@ -533,9 +533,7 @@ class Crittr {
             return true;
         }
 
-        return /timeout|target closed|session closed|execution context was destroyed|page crashed|navigation|net::err/i.test(
-            error.message,
-        );
+        return /timeout|target closed|session closed|execution context was destroyed|page crashed|navigation|net::err/i.test(error.message);
     }
 
     /**
