@@ -7,12 +7,12 @@
     "private": false,
     "type": "module",
     "bugs": {
-        "url": "https://github.com/hummal/crittr/issues"
+        "url": "https://github.com/philipp-winterle/crittr/issues"
     },
-    "homepage": "https://hummal.github.io/crittr/",
+    "homepage": "https://github.com/philipp-winterle/crittr/",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/hummal/crittr.git"
+        "url": "git+https://github.com/philipp-winterle/crittr.git"
     },
     "keywords": [
         "critical",
