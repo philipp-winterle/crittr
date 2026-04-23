@@ -1,2 +1,9 @@
 #!/usr/bin/env sh
 npx biome check --write --no-errors-on-unmatched --staged
+
+if ! git diff --quiet; then
+  echo ""
+  echo "Biome modified files. Review changes, stage them, and commit again:"
+  git diff --name-only
+  exit 1
+fi
