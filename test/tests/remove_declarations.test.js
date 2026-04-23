@@ -87,9 +87,7 @@ describe('removeDeclarations option', () => {
             const ast = transformator.getAst(css);
             const selectorMap = buildFullSelectorMap(ast);
 
-            const [critical] = transformator.filterByMap(ast, selectorMap, [
-                (property) => property === 'cursor',
-            ]);
+            const [critical] = transformator.filterByMap(ast, selectorMap, [property => property === 'cursor']);
             const criticalCss = transformator.getCssFromAst(critical);
 
             expect(criticalCss).not.toContain('cursor');
@@ -103,7 +101,7 @@ describe('removeDeclarations option', () => {
             const selectorMap = buildFullSelectorMap(ast);
 
             const seenArgs = [];
-            const [critical] = transformator.filterByMap(ast, selectorMap, [
+            const [_critical] = transformator.filterByMap(ast, selectorMap, [
                 (property, value) => {
                     seenArgs.push({ property, value });
                     return false;
