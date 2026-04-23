@@ -198,6 +198,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | removeSelectors:        | Array                            | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []                 |
 | blockRequests           | Array                            | Optional. Some of the requests made by pages are an                                                                                                                                                                              |
 | removeDeclarations      | Array                            | Optional. CSS declarations to strip from the **critical** CSS and re-inject into the remaining CSS. Each entry can be a `string` (exact property name, case-insensitive), a `RegExp` (tested against the property name), or a `function (property, value) => boolean`. Default: [] |
+| excludeMediaQueries     | Array                            | Optional. Exclude specific `@media` rules from critical CSS. Matched rules are moved to the rest CSS. Accepts strings (substring match, case-insensitive) or `RegExp` patterns. Default: `['print']` |
 
 ### Browser options
 
@@ -277,6 +278,38 @@ const { critical, rest } = await Crittr({
 ```
 
 Rules that become empty after stripping are removed from critical CSS entirely. The stripped declarations are always preserved in the remaining CSS so no styles are lost.
+
+## excludeMediaQueries
+
+With `excludeMediaQueries` you can prevent specific `@media` rules from appearing in the critical CSS output. Matched rules are moved to the remaining CSS — no styles are lost.
+
+By default, `@media print` rules are excluded because print styles are never needed above the fold. Set the option to `[]` to opt out of this behavior entirely.
+
+Each entry in the array can be:
+
+- **String** — matched as a case-insensitive substring of the media query string (e.g. `'print'` matches `@media print`)
+- **RegExp** — tested against the media query string (e.g. `/print/i`)
+
+```javascript
+const { critical, rest } = await Crittr({
+    urls: urls,
+    css: css,
+    excludeMediaQueries: [
+        'print',         // excludes @media print (default)
+        /^screen/,       // excludes @media screen ...
+    ],
+});
+```
+
+To disable the default exclusion of `@media print`:
+
+```javascript
+const { critical, rest } = await Crittr({
+    urls: urls,
+    css: css,
+    excludeMediaQueries: [],
+});
+```
 
 ## FAQ :confused:
 

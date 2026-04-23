@@ -2,7 +2,15 @@ import log from '@dynamicabot/signales';
 import doDebug from 'debug';
 import deepmerge from 'deepmerge';
 import { parseCss, stringifyCss } from '../helper/cssAstAdapter.js';
-import type { AnyCssRule, CriticalSelectorsEntry, CssDeclaration, CssRule, CssStylesheet, DeclarationMatcher } from '../types.js';
+import type {
+    AnyCssRule,
+    CriticalSelectorsEntry,
+    CssDeclaration,
+    CssMediaRule,
+    CssRule,
+    CssStylesheet,
+    DeclarationMatcher,
+} from '../types.js';
 import Rule from './Rule.class.js';
 
 const debug = doDebug('crittr:css-transformator');
@@ -239,6 +247,27 @@ class CssTransformator {
         }
     }
 
+    private matchesExcludedMediaQuery(media: string, patterns: (string | RegExp)[]): boolean {
+        return patterns.some(pattern => {
+            if (typeof pattern === 'string') return media.toLowerCase().includes(pattern.toLowerCase());
+            return pattern.test(media);
+        });
+    }
+
+    private applyExcludeMediaQueriesToRules(criticalRules: AnyCssRule[], restRules: AnyCssRule[], patterns: (string | RegExp)[]): void {
+        for (let i = criticalRules.length - 1; i >= 0; i--) {
+            const rule = criticalRules[i];
+
+            if (rule.type === 'media' && this.matchesExcludedMediaQuery((rule as CssMediaRule).media, patterns)) {
+                criticalRules.splice(i, 1);
+                restRules.unshift(rule);
+            } else if (this.isGroupType(rule)) {
+                const groupRule = rule as RuleWithRules;
+                this.applyExcludeMediaQueriesToRules(groupRule.rules ?? [], restRules, patterns);
+            }
+        }
+    }
+
     /**
      * Filters the AST Object with the `selectorMap` containing critical selectors.
      * Returns a tuple `[criticalAst, restAst]`. Does NOT mutate the input AST.
@@ -247,6 +276,7 @@ class CssTransformator {
         ast: CssStylesheet,
         selectorMap: Map<string, CriticalSelectorsEntry>,
         removeDeclarations: DeclarationMatcher[] = [],
+        excludeMediaQueries: (string | RegExp)[] = [],
     ): [CssStylesheet, CssStylesheet] {
         const _ast = JSON.parse(JSON.stringify(ast)) as CssStylesheet;
         const _astRest = JSON.parse(JSON.stringify(ast)) as CssStylesheet;
@@ -279,6 +309,11 @@ class CssTransformator {
         // Strip removeDeclarations from critical and re-inject into rest
         if (removeDeclarations.length > 0) {
             this.applyRemoveDeclarationsToRules(_astRoot.rules, _astRestRoot.rules, removeDeclarations);
+        }
+
+        // Move excluded @media rules from critical to rest
+        if (excludeMediaQueries.length > 0) {
+            this.applyExcludeMediaQueriesToRules(_astRoot.rules, _astRestRoot.rules, excludeMediaQueries);
         }
 
         return [_ast, _astRest];

@@ -59,6 +59,7 @@ export interface CrittrOptions {
     removeSelectors?: ReadonlyArray<string>;
     blockRequests?: ReadonlyArray<string>;
     removeDeclarations?: ReadonlyArray<DeclarationMatcher>;
+    excludeMediaQueries?: ReadonlyArray<string | RegExp>;
 }
 
 /**
@@ -85,6 +86,7 @@ export interface ResolvedCrittrOptions {
     removeSelectors: string[];
     blockRequests: string[];
     removeDeclarations: DeclarationMatcher[];
+    excludeMediaQueries: (string | RegExp)[];
 }
 
 export interface CrittrResult {
