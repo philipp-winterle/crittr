@@ -211,11 +211,7 @@ class CssTransformator {
                 const groupRule = rule as RuleWithRules;
                 const restGroup = this.findOrCreateGroupInRest(rule, restRules);
 
-                this.applyRemoveDeclarationsToRules(
-                    groupRule.rules ?? [],
-                    restGroup.rules ?? [],
-                    removeDeclarations,
-                );
+                this.applyRemoveDeclarationsToRules(groupRule.rules ?? [], restGroup.rules ?? [], removeDeclarations);
 
                 if ((groupRule.rules?.length ?? 0) === 0) {
                     criticalRules.splice(i, 1);
@@ -224,14 +220,10 @@ class CssTransformator {
                 const cssRule = rule as CssRule;
                 if (!cssRule.declarations?.length) continue;
 
-                const strippedDecls = cssRule.declarations.filter(d =>
-                    this.matchesDeclarationFilter(d, removeDeclarations)
-                );
+                const strippedDecls = cssRule.declarations.filter(d => this.matchesDeclarationFilter(d, removeDeclarations));
 
                 if (strippedDecls.length > 0) {
-                    cssRule.declarations = cssRule.declarations.filter(d =>
-                        !this.matchesDeclarationFilter(d, removeDeclarations)
-                    );
+                    cssRule.declarations = cssRule.declarations.filter(d => !this.matchesDeclarationFilter(d, removeDeclarations));
 
                     restRules.push({
                         type: 'rule',
@@ -251,7 +243,11 @@ class CssTransformator {
      * Filters the AST Object with the `selectorMap` containing critical selectors.
      * Returns a tuple `[criticalAst, restAst]`. Does NOT mutate the input AST.
      */
-    filterByMap(ast: CssStylesheet, selectorMap: Map<string, CriticalSelectorsEntry>, removeDeclarations: DeclarationMatcher[] = []): [CssStylesheet, CssStylesheet] {
+    filterByMap(
+        ast: CssStylesheet,
+        selectorMap: Map<string, CriticalSelectorsEntry>,
+        removeDeclarations: DeclarationMatcher[] = [],
+    ): [CssStylesheet, CssStylesheet] {
         const _ast = JSON.parse(JSON.stringify(ast)) as CssStylesheet;
         const _astRest = JSON.parse(JSON.stringify(ast)) as CssStylesheet;
         const _astRoot = _ast.stylesheet;

@@ -732,7 +732,11 @@ class Crittr {
             }
 
             debug('evaluateUrl - cleaning up AST with criticalSelectorMap');
-            const [criticalAst, restAst] = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap, this.options.removeDeclarations);
+            const [criticalAst, restAst] = this._cssTransformator.filterByMap(
+                sourceAst,
+                criticalSelectorsMap,
+                this.options.removeDeclarations,
+            );
             criticalAstObj = criticalAst;
             restAstObj = restAst;
             debug('evaluateUrl - cleaning up AST with criticalSelectorMap - END');
