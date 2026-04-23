@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.0](https://github.com/philipp-winterle/crittr/compare/v3.2.0...v3.3.0) (2026-04-23)
+
+
+### Features
+
+* add excludeMediaQueries option to filter [@media](https://github.com/media) rules from crit… ([3fdd349](https://github.com/philipp-winterle/crittr/commit/3fdd349c8559efbc4d1d1ae6cfce9bf578345b22))
+* add excludeMediaQueries option to filter [@media](https://github.com/media) rules from critical CSS ([cc7ccd8](https://github.com/philipp-winterle/crittr/commit/cc7ccd83b3c44abbc5c0f93440689cc612031101))
+
 ## [3.2.0](https://github.com/philipp-winterle/crittr/compare/v3.1.2...v3.2.0) (2026-04-23)
 
 
