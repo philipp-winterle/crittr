@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.2](https://github.com/philipp-winterle/crittr/compare/v3.1.1...v3.1.2) (2026-04-23)
+
+
+### Bug Fixes
+
+* handle Windows absolute paths in isLocalFile and page navigation ([44e3efd](https://github.com/philipp-winterle/crittr/commit/44e3efd288ea3f2f9f0612956af89117a4243faf))
+* handle Windows absolute paths in isLocalFile and page navigation ([3846588](https://github.com/philipp-winterle/crittr/commit/3846588cb44a984d20a523dc554ecacb7393d9e8)), closes [#61](https://github.com/philipp-winterle/crittr/issues/61)
+
 ## [3.1.0](https://github.com/philipp-winterle/crittr/compare/v3.0.0...v3.1.0) (2026-04-20)
 
 
