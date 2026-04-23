@@ -95,6 +95,7 @@ class Crittr {
             keepSelectors: [],
             removeSelectors: [],
             removeDeclarations: [],
+            excludeMediaQueries: ['print'],
             blockRequests: [
                 'maps.gstatic.com',
                 'maps.googleapis.com',
@@ -736,6 +737,7 @@ class Crittr {
                 sourceAst,
                 criticalSelectorsMap,
                 this.options.removeDeclarations,
+                this.options.excludeMediaQueries,
             );
             criticalAstObj = criticalAst;
             restAstObj = restAst;
