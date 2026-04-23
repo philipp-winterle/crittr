@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.0](https://github.com/philipp-winterle/crittr/compare/v3.1.2...v3.2.0) (2026-04-23)
+
+
+### Features
+
+* add removeDeclarations option to strip properties from critical… ([3be54d2](https://github.com/philipp-winterle/crittr/commit/3be54d29cf2d449fe2fae48b556cd519c72a486d))
+
+
+### Bug Fixes
+
+* rename unused variable to satisfy biome lint ([d155267](https://github.com/philipp-winterle/crittr/commit/d1552673381b25643be30b9400553eaf5ec180c4))
+
 ## [3.1.2](https://github.com/philipp-winterle/crittr/compare/v3.1.1...v3.1.2) (2026-04-23)
 
 
