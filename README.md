@@ -197,6 +197,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | keepSelectors           | Array                            | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []        |
 | removeSelectors:        | Array                            | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []                 |
 | blockRequests           | Array                            | Optional. Some of the requests made by pages are an                                                                                                                                                                              |
+| removeDeclarations      | Array                            | Optional. CSS declarations to strip from the **critical** CSS and re-inject into the remaining CSS. Each entry can be a `string` (exact property name, case-insensitive), a `RegExp` (tested against the property name), or a `function (property, value) => boolean`. Default: [] |
 
 ### Browser options
 
@@ -252,6 +253,30 @@ This keepSelectors options will match every selector that begins with `.test` an
 .test .test2:before {
 } /* match */
 ```
+
+## removeDeclarations
+
+With `removeDeclarations` you can strip individual CSS properties from the critical CSS and have them automatically re-injected into the remaining CSS. This is useful for properties that are not needed above the fold — for example `cursor`, `transition`, or long-form border properties.
+
+Each entry in the array can be:
+
+- **String** — matches the property name exactly (case-insensitive)
+- **RegExp** — tested against the property name
+- **Function** — receives `(property, value)` and returns `true` to remove
+
+```javascript
+const { critical, rest } = await Crittr({
+    urls: urls,
+    css: css,
+    removeDeclarations: [
+        'cursor',                          // exact match
+        /^transition/,                     // all transition-* properties
+        (property, value) => value === '0' // any property with value "0"
+    ],
+});
+```
+
+Rules that become empty after stripping are removed from critical CSS entirely. The stripped declarations are always preserved in the remaining CSS so no styles are lost.
 
 ## FAQ :confused:
 

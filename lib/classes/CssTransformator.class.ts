@@ -2,7 +2,7 @@ import log from '@dynamicabot/signales';
 import doDebug from 'debug';
 import deepmerge from 'deepmerge';
 import { parseCss, stringifyCss } from '../helper/cssAstAdapter.js';
-import type { AnyCssRule, CriticalSelectorsEntry, CssRule, CssStylesheet } from '../types.js';
+import type { AnyCssRule, CriticalSelectorsEntry, CssDeclaration, CssRule, CssStylesheet, DeclarationMatcher } from '../types.js';
 import Rule from './Rule.class.js';
 
 const debug = doDebug('crittr:css-transformator');
@@ -145,7 +145,7 @@ class CssTransformator {
             criticalSelectorsMap.set(ruleKey, rule.selectors);
         }
 
-        if (rule.type === 'rule' && rule.selectors.length === 0) {
+        if (rule.type === 'rule' && (rule.selectors ?? []).length === 0) {
             return null;
         }
 
@@ -178,11 +178,80 @@ class CssTransformator {
         return rule;
     }
 
+    private matchesDeclarationFilter(decl: CssDeclaration, matchers: DeclarationMatcher[]): boolean {
+        const property = decl.property.toLowerCase();
+        const value = decl.value ?? '';
+        return matchers.some(matcher => {
+            if (typeof matcher === 'string') return property === matcher.toLowerCase();
+            if (matcher instanceof RegExp) return matcher.test(property);
+            return matcher(property, value);
+        });
+    }
+
+    private findOrCreateGroupInRest(criticalGroupRule: AnyCssRule, restRules: AnyCssRule[]): RuleWithRules {
+        const groupId = this.getGroupRuleId(criticalGroupRule);
+        const existing = restRules.find(r => this.isGroupType(r) && this.getGroupRuleId(r) === groupId);
+        if (existing) return existing as RuleWithRules;
+
+        const newGroup = JSON.parse(JSON.stringify(criticalGroupRule)) as RuleWithRules;
+        newGroup.rules = [];
+        restRules.push(newGroup as AnyCssRule);
+        return newGroup;
+    }
+
+    private applyRemoveDeclarationsToRules(
+        criticalRules: AnyCssRule[],
+        restRules: AnyCssRule[],
+        removeDeclarations: DeclarationMatcher[],
+    ): void {
+        for (let i = criticalRules.length - 1; i >= 0; i--) {
+            const rule = criticalRules[i];
+
+            if (this.isGroupType(rule)) {
+                const groupRule = rule as RuleWithRules;
+                const restGroup = this.findOrCreateGroupInRest(rule, restRules);
+
+                this.applyRemoveDeclarationsToRules(
+                    groupRule.rules ?? [],
+                    restGroup.rules ?? [],
+                    removeDeclarations,
+                );
+
+                if ((groupRule.rules?.length ?? 0) === 0) {
+                    criticalRules.splice(i, 1);
+                }
+            } else if (rule.type === 'rule') {
+                const cssRule = rule as CssRule;
+                if (!cssRule.declarations?.length) continue;
+
+                const strippedDecls = cssRule.declarations.filter(d =>
+                    this.matchesDeclarationFilter(d, removeDeclarations)
+                );
+
+                if (strippedDecls.length > 0) {
+                    cssRule.declarations = cssRule.declarations.filter(d =>
+                        !this.matchesDeclarationFilter(d, removeDeclarations)
+                    );
+
+                    restRules.push({
+                        type: 'rule',
+                        selectors: [...(cssRule.selectors ?? [])],
+                        declarations: strippedDecls,
+                    } as CssRule);
+
+                    if (cssRule.declarations.length === 0) {
+                        criticalRules.splice(i, 1);
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Filters the AST Object with the `selectorMap` containing critical selectors.
      * Returns a tuple `[criticalAst, restAst]`. Does NOT mutate the input AST.
      */
-    filterByMap(ast: CssStylesheet, selectorMap: Map<string, CriticalSelectorsEntry>): [CssStylesheet, CssStylesheet] {
+    filterByMap(ast: CssStylesheet, selectorMap: Map<string, CriticalSelectorsEntry>, removeDeclarations: DeclarationMatcher[] = []): [CssStylesheet, CssStylesheet] {
         const _ast = JSON.parse(JSON.stringify(ast)) as CssStylesheet;
         const _astRest = JSON.parse(JSON.stringify(ast)) as CssStylesheet;
         const _astRoot = _ast.stylesheet;
@@ -210,6 +279,11 @@ class CssTransformator {
 
         _astRoot.rules = newRules;
         _astRestRoot.rules = restRules;
+
+        // Strip removeDeclarations from critical and re-inject into rest
+        if (removeDeclarations.length > 0) {
+            this.applyRemoveDeclarationsToRules(_astRoot.rules, _astRestRoot.rules, removeDeclarations);
+        }
 
         return [_ast, _astRest];
     }

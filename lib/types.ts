@@ -39,6 +39,8 @@ export interface PuppeteerOptions {
     headless: boolean | 'shell';
 }
 
+export type DeclarationMatcher = string | RegExp | ((property: string, value: string) => boolean);
+
 export interface CrittrOptions {
     css?: string | null;
     urls: ReadonlyArray<string>;
@@ -56,6 +58,7 @@ export interface CrittrOptions {
     keepSelectors?: ReadonlyArray<string>;
     removeSelectors?: ReadonlyArray<string>;
     blockRequests?: ReadonlyArray<string>;
+    removeDeclarations?: ReadonlyArray<DeclarationMatcher>;
 }
 
 /**
@@ -81,6 +84,7 @@ export interface ResolvedCrittrOptions {
     keepSelectors: string[];
     removeSelectors: string[];
     blockRequests: string[];
+    removeDeclarations: DeclarationMatcher[];
 }
 
 export interface CrittrResult {

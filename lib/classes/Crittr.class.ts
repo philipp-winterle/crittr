@@ -94,6 +94,7 @@ class Crittr {
             screenshotNameGenerator: DEFAULTS.SCREENSHOT_NAME_GENERATOR,
             keepSelectors: [],
             removeSelectors: [],
+            removeDeclarations: [],
             blockRequests: [
                 'maps.gstatic.com',
                 'maps.googleapis.com',
@@ -731,7 +732,7 @@ class Crittr {
             }
 
             debug('evaluateUrl - cleaning up AST with criticalSelectorMap');
-            const [criticalAst, restAst] = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap);
+            const [criticalAst, restAst] = this._cssTransformator.filterByMap(sourceAst, criticalSelectorsMap, this.options.removeDeclarations);
             criticalAstObj = criticalAst;
             restAstObj = restAst;
             debug('evaluateUrl - cleaning up AST with criticalSelectorMap - END');
