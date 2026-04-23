@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import util from 'node:util';
 import log from '@dynamicabot/signales';
 import chalk from 'chalk';
@@ -329,7 +330,8 @@ class Crittr {
         const page = await this.getPage();
         debug(`getCssFromUrl - Try to get collect CSS from ${url}`);
         await page.coverage.startCSSCoverage();
-        await page.goto(url, {
+        const navigationUrl = this.isLocalFile(url) ? pathToFileURL(url).href : url;
+        await page.goto(navigationUrl, {
             waitUntil: 'load',
             timeout: this.options.timeout,
         });
@@ -668,8 +670,17 @@ class Crittr {
                         cleanedUrl = cleanedUrl.substring(0, cleanedUrl.indexOf('#'));
                     }
 
-                    const htmlContent = await fs.readFile(path.join(DEFAULTS.PROJECT_DIR, cleanedUrl), 'utf8');
-                    await page.setContent(htmlContent);
+                    if (path.isAbsolute(cleanedUrl)) {
+                        // Absolute paths must be navigated as file:// URLs so that
+                        // Chrome resolves relative resources (CSS, images) correctly.
+                        await page.goto(pathToFileURL(cleanedUrl).href, {
+                            timeout: this.options.timeout,
+                            waitUntil: 'load',
+                        });
+                    } else {
+                        const htmlContent = await fs.readFile(path.join(DEFAULTS.PROJECT_DIR, cleanedUrl), 'utf8');
+                        await page.setContent(htmlContent);
+                    }
                 } else {
                     // `networkidle2` is flaky in CI; `load` matches getCssFromUrl.
                     await page.goto(url, {
@@ -750,6 +761,12 @@ class Crittr {
     }
 
     isLocalFile(url: string): boolean {
+        // Windows absolute paths (e.g. "d:\\path\\file.html") are accepted by the
+        // URL constructor with "d:" as the scheme — so we must guard with isAbsolute first.
+        if (path.isAbsolute(url)) {
+            debug('{url} is an absolute local path');
+            return true;
+        }
         try {
             new URL(url);
             debug('{url} is a real url');
