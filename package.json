@@ -27,7 +27,7 @@
         "extract"
     ],
     "engines": {
-        "node": ">=20"
+        "node": ">=22.12.0"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -49,7 +49,7 @@
         "object-hash": "^3.0.0",
         "postcss": "^8.5.15",
         "postcss-sort-media-queries": "^6.6.1",
-        "puppeteer": "^24.41.0",
+        "puppeteer": "^25.0.4",
         "puppeteer-extra": "^3.3.6",
         "puppeteer-extra-plugin-stealth": "^2.11.2",
         "run-queue": "^2.0.1"
