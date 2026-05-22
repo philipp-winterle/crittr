@@ -5,8 +5,7 @@
  *  node ./examples/benchmark.js
  */
 
-'use strict';
-const path = require('path');
+const path = require('node:path');
 const Crittr = require('../index');
 const rootDir = path.join(__dirname, '..');
 const staticServer = require('../lib/helper/localFileServer')(rootDir);
@@ -43,7 +42,7 @@ staticServer
             console.time('Crittr');
             const { critical, rest } = await Crittr({
                 urls: urls,
-                css: rootDir + '/test/data/test.css',
+                css: `${rootDir}/test/data/test.css`,
                 device: {
                     width: 1920,
                     height: 1080,
@@ -67,9 +66,9 @@ staticServer
         console.time('Penthouse');
         for (const url of urls) {
             try {
-                const extracedCss = await penthouse({
+                const _extracedCss = await penthouse({
                     url: url,
-                    css: rootDir + '/test/data/test.css',
+                    css: `${rootDir}/test/data/test.css`,
                     width: 1920,
                     height: 1080,
                     forceInclude: ['.forceInclude'],
@@ -90,7 +89,7 @@ staticServer
         const criticalCssWrapper = async () => {
             for (const url of urls) {
                 await new Promise(resolve => {
-                    criticalcss.getRules(path.join(rootDir, '/test/data/test.css'), function (err, output) {
+                    criticalcss.getRules(path.join(rootDir, '/test/data/test.css'), (_err, output) => {
                         criticalcss.findCritical(
                             url,
                             {
@@ -99,12 +98,11 @@ staticServer
                                 height: 1080,
                                 forceInclude: ['.forceInclude'],
                             },
-                            function (err, output) {
+                            (err, output) => {
                                 if (err) {
                                     throw new Error(err);
-                                } else {
-                                    resolve(output);
                                 }
+                                resolve(output);
                             },
                         );
                     });
@@ -120,7 +118,7 @@ staticServer
         console.log('Start Critical Benchmark');
         const critical = require('critical');
         console.time('Critical');
-        for (const url of urls) {
+        for (const _url of urls) {
             critical.generate({
                 base: './',
                 src: './test/data/test.html',

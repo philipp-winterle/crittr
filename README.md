@@ -33,10 +33,11 @@ There are some other libraries out there dealing with the topic of extracting th
 
 ### Requirements
 
-- minimum nodejs > 12 | recommended nodejs 16+
+- Node.js 20 LTS or newer (Node 22+ recommended)
 - async/await
 - Promises
 - puppeteer dependecies on UNIX bases OS (including MacOSX)
+- TypeScript types are shipped with the package (no `@types/crittr` needed)
 
 > Due to some dependencies of crittr you may need to install some additional software.
 > Puppeteer has some special requirements if you are running on an UNIX based operation system. You can read more about this fact here. Including a list of what to install: [Puppeteer Troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#chrome-headless-doesnt-launch)
@@ -55,7 +56,7 @@ npm i crittr
 
 To use crittr as a module just require it and choose your [options](#options).
 
-The crittr module has the expects an object as input parameter and returns an array with 2 css strings. The first one is the criticalCss string and the second one is the remaining css without the critical selectors.
+The crittr module expects an options object as input parameter and returns a Promise resolving to an object `{ critical, rest }`. `critical` is the critical CSS string and `rest` is the remaining CSS without the critical selectors.
 
 ```javascript
 // async/await
@@ -72,7 +73,7 @@ crittr(options).then(({ critical, rest }) => {
 ##### Basic
 
 ```javascript
-const Crittr = require('crittr');
+import Crittr from 'crittr';
 
 Crittr({
     urls: ['https://github.com/'],
@@ -97,7 +98,7 @@ Crittr({
 As you can also read in the [options](#options) section there is the possibility to use a css file as a path instead of a string. If the path provided ends with `.css` it is treated as a file path.
 
 ```javascript
-const Crittr = require('crittr');
+import Crittr from 'crittr';
 
 Crittr({
     urls: ['https://github.com/'],
@@ -110,8 +111,9 @@ Crittr({
 Due to the fact, that crittr is returning a **Promise<String>** you can also use async/await syntax to handle the result.
 
 ```javascript
+import Crittr from 'crittr';
+
 (async () => {
-    const Crittr = require('crittr');
     try {
         const { critical, rest } = await Crittr({
             urls: ['https://github.com/'],
@@ -148,7 +150,7 @@ Crittr({
 To use the full power of crittr and get the most of the performance advantage you should pass in multiple urls. As of the fact that the most websites use one css file for multiple pages this is the ultimate way to get the critical css for all of them!
 
 ```javascript
-const Crittr = require('crittr');
+import Crittr from 'crittr';
 
 const urls = ['https://example.com/page1', 'https://example.com/page2', 'https://example.com/about', 'https://example.com/shop'];
 
@@ -195,6 +197,8 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | keepSelectors           | Array                            | Optional. Every CSS Selector in this array will be kept as part of the critical css even if they are not part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []        |
 | removeSelectors:        | Array                            | Optional. Every CSS Selector in this array will be removed of the critical css even if they are part of it. You can use wildcards (%) to capture more rules with one entry. [Read more](#wildcards). Default: []                 |
 | blockRequests           | Array                            | Optional. Some of the requests made by pages are an                                                                                                                                                                              |
+| removeDeclarations      | Array                            | Optional. CSS declarations to strip from the **critical** CSS and re-inject into the remaining CSS. Each entry can be a `string` (exact property name, case-insensitive), a `RegExp` (tested against the property name), or a `function (property, value) => boolean`. Default: [] |
+| excludeMediaQueries     | Array                            | Optional. Exclude specific `@media` rules from critical CSS. Matched rules are moved to the rest CSS. Accepts strings (substring match, case-insensitive) or `RegExp` patterns. Default: `['print']` |
 
 ### Browser options
 
@@ -249,6 +253,62 @@ This keepSelectors options will match every selector that begins with `.test` an
 } /* no match */
 .test .test2:before {
 } /* match */
+```
+
+## removeDeclarations
+
+With `removeDeclarations` you can strip individual CSS properties from the critical CSS and have them automatically re-injected into the remaining CSS. This is useful for properties that are not needed above the fold — for example `cursor`, `transition`, or long-form border properties.
+
+Each entry in the array can be:
+
+- **String** — matches the property name exactly (case-insensitive)
+- **RegExp** — tested against the property name
+- **Function** — receives `(property, value)` and returns `true` to remove
+
+```javascript
+const { critical, rest } = await Crittr({
+    urls: urls,
+    css: css,
+    removeDeclarations: [
+        'cursor',                          // exact match
+        /^transition/,                     // all transition-* properties
+        (property, value) => value === '0' // any property with value "0"
+    ],
+});
+```
+
+Rules that become empty after stripping are removed from critical CSS entirely. The stripped declarations are always preserved in the remaining CSS so no styles are lost.
+
+## excludeMediaQueries
+
+With `excludeMediaQueries` you can prevent specific `@media` rules from appearing in the critical CSS output. Matched rules are moved to the remaining CSS — no styles are lost.
+
+By default, `@media print` rules are excluded because print styles are never needed above the fold. Set the option to `[]` to opt out of this behavior entirely.
+
+Each entry in the array can be:
+
+- **String** — matched as a case-insensitive substring of the media query string (e.g. `'print'` matches `@media print`)
+- **RegExp** — tested against the media query string (e.g. `/print/i`)
+
+```javascript
+const { critical, rest } = await Crittr({
+    urls: urls,
+    css: css,
+    excludeMediaQueries: [
+        'print',         // excludes @media print (default)
+        /^screen/,       // excludes @media screen ...
+    ],
+});
+```
+
+To disable the default exclusion of `@media print`:
+
+```javascript
+const { critical, rest } = await Crittr({
+    urls: urls,
+    css: css,
+    excludeMediaQueries: [],
+});
 ```
 
 ## FAQ :confused:

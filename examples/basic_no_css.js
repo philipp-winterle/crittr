@@ -1,5 +1,4 @@
-'use strict';
-const path = require('path');
+const path = require('node:path');
 const fs = require('fs-extra');
 const Crittr = require('../index');
 const rootDir = path.join(__dirname, '..');

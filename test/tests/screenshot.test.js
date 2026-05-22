@@ -1,7 +1,8 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
+import path from 'node:path';
+import url from 'node:url';
 import fs from 'fs-extra';
-import path from 'path';
-import url from 'url';
+import { describe, expect, test } from 'vitest';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 const rootDir = path.join(__dirname, '..', '..');
@@ -20,7 +21,7 @@ describe('Screenshots', () => {
             const files = await fs.readdir(path.join(testResultDir, 'screenshots', 'normal'));
             expect(
                 urls.every(url => {
-                    const expectedScreenName = url.replace(/[^\w\s]/gi, '_') + '.png';
+                    const expectedScreenName = `${url.replace(/[^\w\s]/gi, '_')}.png`;
                     return files.includes(expectedScreenName);
                 }),
             ).toBeTruthy();

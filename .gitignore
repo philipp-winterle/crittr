@@ -8,3 +8,8 @@ test.js
 test/results/*
 !test/results/.gitkeep
 test/*.css
+_workspace/
+dist/
+crittr-*.tgz
+
+ruvector.db

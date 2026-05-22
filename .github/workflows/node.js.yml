@@ -1,19 +1,23 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# This workflow installs dependencies, builds the source, runs tests, type-checks,
+# and lints across the supported Node.js versions.
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Run Tests
 
 on:
+    push:
+        branches: [main]
     pull_request:
-        branches: [master]
+        branches: [main]
 
 jobs:
     build:
         runs-on: ubuntu-latest
 
         strategy:
+            fail-fast: false
             matrix:
-                node-version: [18.x, 20.x]
+                node-version: [24.x, 25.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
@@ -22,6 +26,9 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: ${{ matrix.node-version }}
-            - run: npm ci
+                  cache: npm
+            - run: npm install
             - run: npm run build
+            - run: npm run typecheck
+            - run: npm run lint
             - run: npm test
