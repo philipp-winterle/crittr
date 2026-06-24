@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.0.0](https://github.com/philipp-winterle/crittr/compare/v4.0.0...v5.0.0) (2026-06-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* **release:** Node.js minimum requirement raised from >=20 to >=22.12.0 due to puppeteer v25 (v24→v25) and @commitlint v21 (v20→v21) upgrades. Users on Node.js 20 or 21 must upgrade to Node.js 22 before using crittr 4.x.
+* **deps:** Minimum Node.js requirement raised from >=20 to >=22.12.0. Users on Node.js 20 or 21 must upgrade to Node.js 22 before upgrading crittr.
+
+### Miscellaneous Chores
+
+* **deps:** upgrade puppeteer to v25 and [@commitlint](https://github.com/commitlint) to v21 ([f0cc259](https://github.com/philipp-winterle/crittr/commit/f0cc2597fcfadd2b92abd489b2fb41d9ef2a49ed))
+* **release:** bump version to 4.0.0 ([9a00383](https://github.com/philipp-winterle/crittr/commit/9a00383368b2e26e3e10505ae4bdd8ee5ffaac6b))
+
 ## [4.0.0](https://github.com/philipp-winterle/crittr/compare/v3.3.0...v4.0.0) (2026-05-22)
 
 
