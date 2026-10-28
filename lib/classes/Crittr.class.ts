@@ -73,6 +73,7 @@ class Crittr {
                 isCacheEnabled: DEFAULTS.BROWSER_CACHE_ENABLED,
                 isJsEnabled: DEFAULTS.BROWSER_JS_ENABLED,
                 concurrentTabs: DEFAULTS.BROWSER_CONCURRENT_TABS,
+                extraHTTPHeaders: DEFAULTS.BROWSER_EXTRA_HTTP_HEADERS,
             },
             device: {
                 width: DEFAULTS.DEVICE_WIDTH,
@@ -331,6 +332,9 @@ class Crittr {
     async getCssFromUrl(url: string): Promise<string> {
         const page = await this.getPage();
         debug(`getCssFromUrl - Try to get collect CSS from ${url}`);
+        if (this.options.browser.extraHTTPHeaders) {
+            await page.setExtraHTTPHeaders(this.options.browser.extraHTTPHeaders);
+        }
         await page.coverage.startCSSCoverage();
         const navigationUrl = this.isLocalFile(url) ? pathToFileURL(url).href : url;
         await page.goto(navigationUrl, {
@@ -618,6 +622,9 @@ class Crittr {
                 debug('evaluateUrl - Set page properties ...');
                 await page.setCacheEnabled(browserOptions.isCacheEnabled);
                 await page.setJavaScriptEnabled(browserOptions.isJsEnabled);
+                if (browserOptions.extraHTTPHeaders) {
+                    await page.setExtraHTTPHeaders(browserOptions.extraHTTPHeaders);
+                }
                 await page.setRequestInterception(true);
 
                 const blockRequests = this.options.blockRequests;

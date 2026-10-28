@@ -208,6 +208,7 @@ The CLI usage is not implemented yet :scream:. At the moment there is no need of
 | isCacheEnabled | Boolean | Optional. If set to false the browser will cache the result assets as normal behaviour. Default: true                                                                                                                                 |
 | isJsEnabled:   | Boolean | Optional. If set to false the execution of Javascript in the browser page is prevented. Default: true                                                                                                                                 |
 | concurrentTabs | Number  | Optional. Sets the maximal allowed concurrent tabs being opened at the same time in the browser. This is a useful option if the system has only low performance and to prevent high load. Default: 10 (Can also be set to "Infinity") |
+| extraHTTPHeaders | Object  | Optional. An object containing custom HTTP headers to pass to each browser request (key-value strings). Default: null |
 
 ### Device options
 

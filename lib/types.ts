@@ -16,6 +16,7 @@ export interface BrowserOptions {
     isCacheEnabled: boolean;
     isJsEnabled: boolean;
     concurrentTabs: number;
+    extraHTTPHeaders?: Record<string, string> | null;
 }
 
 export interface DeviceConfig {

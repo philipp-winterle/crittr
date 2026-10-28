@@ -33,6 +33,7 @@ export interface CrittrConstants {
     BROWSER_CACHE_ENABLED: boolean;
     BROWSER_JS_ENABLED: boolean;
     BROWSER_CONCURRENT_TABS: number;
+    BROWSER_EXTRA_HTTP_HEADERS: Record<string, string> | null;
     DEVICE_WIDTH: number;
     DEVICE_HEIGHT: number;
     DEVICE_SCALE_FACTOR: number;
@@ -60,6 +61,7 @@ const CONSTANTS: CrittrConstants = {
     BROWSER_CACHE_ENABLED: true,
     BROWSER_JS_ENABLED: true,
     BROWSER_CONCURRENT_TABS: 10,
+    BROWSER_EXTRA_HTTP_HEADERS: null,
     DEVICE_WIDTH: 1200,
     DEVICE_HEIGHT: 1080,
     DEVICE_SCALE_FACTOR: 1,
