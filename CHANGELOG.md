@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.0](https://github.com/philipp-winterle/crittr/compare/v5.0.0...v5.1.0) (2026-10-28)
+
+
+### Features
+
+* add extraHTTPHeaders option to pass custom headers to requests ([bed1d90](https://github.com/philipp-winterle/crittr/commit/bed1d9059ac3354c0f907f009196466f96a4303c))
+* add extraHTTPHeaders option to pass custom headers to requests ([7f97d07](https://github.com/philipp-winterle/crittr/commit/7f97d070753f88fe4cb18f16968e732070ba2d9c))
+
 ## [5.0.0](https://github.com/philipp-winterle/crittr/compare/v4.0.0...v5.0.0) (2026-06-24)
 
 
